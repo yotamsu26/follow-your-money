@@ -1,0 +1,29 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "follow your money app ",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsc && node dist/index.js",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "mongodb": "6.17",
+    "mongoose": "^8.5.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/mongodb": "^4.0.7",
+    "@types/node": "^24.0.3",
+    "typescript": "^5.8.3",
+    "@types/jest": "^29.5.8",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1"
+  }
+}
