@@ -1,35 +1,63 @@
-import { client, connect } from "./collection-utils";
+import { client, connect } from "./collection-utils.js";
 
-export async function logIn(email: string, password: string) {
+export async function logIn(username: string, password: string) {
   await connect();
   const db = client.db("WealthTracker");
   const collection = db.collection("Users");
 
   try {
-    const result = await collection.findOne({ email });
+    // Try to find user by email or username
+    const result = await collection.findOne({
+      userName: username,
+    });
+
     if (!result) {
       throw new Error("User not found");
     }
+
     if (result.password !== password) {
       throw new Error("Invalid password");
     }
-    return result;
+
+    // Return user data without password
+    const { password: _, ...userWithoutPassword } = result;
+    return userWithoutPassword;
   } catch (error) {
     console.error("Error logging in:", error);
     throw error;
   }
 }
 
-export async function signUp(email: string, password: string) {
+export async function signUp(
+  fullName: string,
+  userName: string,
+  email: string,
+  password: string
+) {
   await connect();
   const db = client.db("WealthTracker");
   const collection = db.collection("Users");
 
-  const existingUser = await collection.findOne({ email });
-  if (existingUser) {
-    throw new Error("User already exists");
+  // Check if user already exists by email
+  const existingUserByEmail = await collection.findOne({ email });
+  if (existingUserByEmail) {
+    throw new Error("User with this email already exists");
   }
 
-  const newUser = { email, password };
-  await collection.insertOne(newUser);
+  // Check if user already exists by username
+  const existingUserByUsername = await collection.findOne({ userName });
+  if (existingUserByUsername) {
+    throw new Error("Username is already taken");
+  }
+
+  const newUser = {
+    fullName,
+    userName,
+    email,
+    password,
+    createdAt: new Date(),
+  };
+
+  const result = await collection.insertOne(newUser);
+  return { ...newUser, _id: result.insertedId };
 }

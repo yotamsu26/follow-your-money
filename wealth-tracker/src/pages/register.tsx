@@ -33,9 +33,10 @@ export default function RegisterScreen() {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   // Handle form submit
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const result = registerSchema.safeParse(formData);
@@ -48,10 +49,48 @@ export default function RegisterScreen() {
         }
       });
       setErrors(fieldErrors);
-    } else {
-      setErrors({});
-      console.log("Form is valid:", result.data);
-      // send data to your API here
+      return;
+    }
+
+    setErrors({});
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:3020/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: result.data.fullName,
+          userName: result.data.userName,
+          email: result.data.email,
+          password: result.data.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Registration successful
+        alert("Registration successful! Please login to continue.");
+        // Redirect to login page
+        window.location.href = "/";
+      } else {
+        // Handle API errors
+        if (data.message === "User with this email already exists") {
+          setErrors({ email: "User with this email already exists" });
+        } else if (data.message === "Username is already taken") {
+          setErrors({ userName: "Username is already taken" });
+        } else {
+          setErrors({ submit: data.message || "Registration failed" });
+        }
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      setErrors({ submit: "Network error. Please try again." });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -117,9 +156,20 @@ export default function RegisterScreen() {
             error={errors.confirmPassword}
           />
 
-          <Button type="submit" variant="primary" className="w-full">
-            Create Account
+          <Button
+            type="submit"
+            variant="primary"
+            className="w-full"
+            disabled={isLoading}
+          >
+            {isLoading ? "Creating Account..." : "Create Account"}
           </Button>
+
+          {errors.submit && (
+            <div className="mt-2 text-red-600 text-sm text-center">
+              {errors.submit}
+            </div>
+          )}
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-600">

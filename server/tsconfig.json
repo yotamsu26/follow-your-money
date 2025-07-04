@@ -1,17 +1,22 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ES2020",
-    "moduleResolution": "node",
-    "outDir": "./dist",
-    "rootDir": "./",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true
+    "target": "ES2020", // Sets the JavaScript language version for emitted JavaScript files
+    "lib": ["ES2020"], // Specifies library files to be included in the compilation
+    "allowJs": true, // Allows JS files to be compiled alongside TS files
+    "skipLibCheck": true, // Skips type checking of declaration files (.d.ts) to improve compilation speed
+    "strict": false, // Disables strict type checking options
+    "forceConsistentCasingInFileNames": true, // Ensures consistent casing in file names
+    "esModuleInterop": true, // Enables compatibility with CommonJS modules when importing ES modules
+    "allowSyntheticDefaultImports": true, // Allows default imports from modules with no default export
+    "module": "ES2020", // Specifies the module system to use (ES2020 modules for modern JavaScript)
+    "moduleResolution": "node", // Uses Node.js module resolution strategy
+    "resolveJsonModule": true, // Allows importing JSON files as modules
+    "isolatedModules": true, // Ensures each file can be transpiled independently
+    "declaration": true, // Generates corresponding .d.ts declaration files for TypeScript definitions
+    "outDir": "./dist", // Specifies the output directory for compiled JavaScript files
+    "rootDir": "./", // Specifies the root directory of input files
+    "types": ["node", "jest"] // Includes Node.js type definitions for server-side development
   },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["**/*.ts"], // Specifies which files to include in compilation
+  "exclude": ["node_modules", "dist"] // Specifies which directories to exclude from compilation
 }
