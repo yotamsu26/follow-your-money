@@ -1,5 +1,4 @@
 import {
-  connect,
   insertMoneyLocation,
   deleteMoneyLocation,
   updateMoneyLocation,
@@ -7,12 +6,23 @@ import {
 } from "./db/collection-utils.js";
 import express from "express";
 import { validData } from "./utils/validation-utils.js";
+import authRouter from "./auth-api.js";
+import cors from "cors";
 
 const app = express();
 const PORT = 3020;
 
 // Middleware to parse JSON bodies
 app.use(express.json());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
+
+// Auth routes
+app.use("/auth", authRouter);
 
 // GET route to get all money locations for a user
 app.get("/money-locations/:user_id", async (req, res) => {
