@@ -7,7 +7,7 @@ export default function LoginScreen() {
     <div className="min-h-screen flex items-center justify-center bg-blue-900 px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-10">
         <h1 className="text-3xl font-bold text-blue-800 mb-8 text-center">
-          Welcome
+          Welcome to Wealth Tracker
         </h1>
 
         <form className="space-y-6">
