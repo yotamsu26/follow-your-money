@@ -9,7 +9,7 @@ import express from "express";
 import { validData } from "./utils/validation-utils.js";
 
 const app = express();
-const PORT = 3000;
+const PORT = 3020;
 
 // Middleware to parse JSON bodies
 app.use(express.json());
