@@ -1,25 +1,52 @@
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import { z } from "zod";
 import { Input } from "../components/basic-components/Input";
 import { Button } from "../components/basic-components/Button";
+import { getItem, removeItem, setItem } from "../storage/local-storage-util";
+import { wrapFetch } from "../api/api-calls";
 
 // Define Zod schema for login
 const loginSchema = z.object({
-  emailOrUsername: z.string().min(1, "Email or username is required"),
+  username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
 export default function LoginScreen() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
-    emailOrUsername: "",
+    username: "",
     password: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
+  // Check if user is already logged in
+  useEffect(() => {
+    const userData = getItem("userData");
+    console.log(router.pathname);
+    if (userData) {
+      try {
+        const parsedUserData = JSON.parse(userData);
+        if (parsedUserData.token) {
+          if (verifyToken(parsedUserData.token)) {
+            // for now there is just one page, so we can redirect to dashboard
+            router.push("/dashboard");
+          } else {
+            // Token expired, remove it
+            removeItem("userData");
+          }
+        }
+      } catch (error) {
+        console.error("Invalid stored user data:", error);
+        removeItem("userData");
+      }
+    }
+  }, [router]);
+
   // Handle form submit
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     const result = loginSchema.safeParse(formData);
@@ -39,30 +66,31 @@ export default function LoginScreen() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3020/auth/login", {
+      const response = await wrapFetch("http://localhost:3020/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
-          username: result.data.emailOrUsername,
+          username: result.data.username,
           password: result.data.password,
         }),
       });
 
-      console.log(response);
-
       const data = await response.json();
 
       if (data.success) {
-        // Login successful
-        alert("Login successful!");
-        // Here you would typically save the user data and redirect
-        console.log("User data:", data.data);
-        // Redirect to dashboard or home page
-        // window.location.href = "/dashboard";
+        // Login successful - store user data with token
+        const userData = {
+          _id: data.data._id,
+          fullName: data.data.fullName,
+          userName: data.data.userName,
+          email: data.data.email,
+          createdAt: data.data.createdAt,
+          token: data.data.token,
+        };
+
+        setItem("userData", JSON.stringify(userData));
+
+        router.push("/dashboard");
       } else {
-        // Handle API errors
         setErrors({ submit: data.message || "Login failed" });
       }
     } catch (error) {
@@ -71,27 +99,28 @@ export default function LoginScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-900 px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-10">
+      <div className="bg-white rounded-2xl shadow-2xl p-10">
         <h1 className="text-3xl font-bold text-blue-800 mb-8 text-center">
           Welcome to Wealth Tracker
         </h1>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <Input
-            label="Email or Username"
-            name="emailOrUsername"
+            label="Username"
+            name="username"
             type="text"
-            placeholder="you@example.com or username"
-            value={formData.emailOrUsername}
+            placeholder="username"
+            value={formData.username}
             onChange={handleChange}
-            error={errors.emailOrUsername}
+            error={errors.username}
           />
 
           <Input
@@ -129,4 +158,14 @@ export default function LoginScreen() {
       </div>
     </div>
   );
+}
+
+function verifyToken(token: string) {
+  const tokenParts = token.split(".");
+  const payload = JSON.parse(atob(tokenParts[1]));
+  const currentTime = Date.now() / 1000;
+
+  if (payload.exp && payload.exp > currentTime) {
+    return true;
+  }
 }

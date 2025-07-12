@@ -26,6 +26,25 @@ export enum AccountType {
   INVESTMENT = "investment",
 }
 
+export enum TransactionType {
+  INCOME = "income",
+  EXPENSE = "expense",
+  TRANSFER = "transfer",
+  INVESTMENT = "investment",
+}
+
+export enum ExpenseCategory {
+  FOOD = "food",
+  TRANSPORTATION = "transportation",
+  HOUSING = "housing",
+  UTILITIES = "utilities",
+  ENTERTAINMENT = "entertainment",
+  SHOPPING = "shopping",
+  EDUCATION = "education",
+  INVESTMENT = "investment",
+  OTHER = "other",
+}
+
 export interface MoneyLocationData {
   user_id: string;
   money_location_id: string;
@@ -39,6 +58,21 @@ export interface MoneyLocationData {
   purchase_price?: number;
   attached_files?: string[];
   notes?: string;
+}
+
+export interface TransactionData {
+  transaction_id: string;
+  user_id: string;
+  money_location_id: string;
+  type: TransactionType;
+  category: ExpenseCategory;
+  amount: number;
+  currency: Currency;
+  description: string;
+  date: Date;
+  receipt_url?: string;
+  tags?: string[];
+  created_at: Date;
 }
 
 export async function connect() {
@@ -113,6 +147,87 @@ export async function getUserMoneyLocations(user_id: string) {
     return result;
   } catch (error) {
     console.error("Error getting user money locations:", error);
+    throw error;
+  }
+}
+
+export async function insertTransaction(data: TransactionData) {
+  await connect();
+  const db = client.db("WealthTracker");
+  const collection = db.collection("Transactions");
+
+  try {
+    const result = await collection.insertOne(data);
+    client.close();
+    return result;
+  } catch (error) {
+    console.error("Error inserting transaction:", error);
+    throw error;
+  }
+}
+
+export async function getUserTransactions(user_id: string, limit: number = 50) {
+  await connect();
+  const db = client.db("WealthTracker");
+  const collection = db.collection("Transactions");
+
+  try {
+    const result = await collection
+      .find({ user_id })
+      .sort({ date: -1 })
+      .limit(limit)
+      .toArray();
+    client.close();
+    return result;
+  } catch (error) {
+    console.error("Error getting user transactions:", error);
+    throw error;
+  }
+}
+
+export async function getTransactionsByCategory(
+  user_id: string,
+  category: ExpenseCategory
+) {
+  await connect();
+  const db = client.db("WealthTracker");
+  const collection = db.collection("Transactions");
+
+  try {
+    const result = await collection.find({ user_id, category }).toArray();
+    client.close();
+    return result;
+  } catch (error) {
+    console.error("Error getting transactions by category:", error);
+    throw error;
+  }
+}
+
+export async function getMonthlyExpenses(
+  user_id: string,
+  year: number,
+  month: number
+) {
+  await connect();
+  const db = client.db("WealthTracker");
+  const collection = db.collection("Transactions");
+
+  try {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+
+    const result = await collection
+      .find({
+        user_id,
+        type: TransactionType.EXPENSE,
+        date: { $gte: startDate, $lte: endDate },
+      })
+      .toArray();
+
+    client.close();
+    return result;
+  } catch (error) {
+    console.error("Error getting monthly expenses:", error);
     throw error;
   }
 }
