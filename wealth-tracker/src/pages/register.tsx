@@ -3,6 +3,13 @@ import { useState } from "react";
 import { z } from "zod";
 import { Input } from "../components/basic-components/Input";
 import { Button } from "../components/basic-components/Button";
+import { wrapFetch } from "../api/api-calls";
+
+enum RegisterError {
+  USERNAME_TAKEN = "Username is already taken",
+  EMAIL_TAKEN = "User with this email already exists",
+  REGISTRATION_FAILED = "Registration failed",
+}
 
 // Define Zod schema
 const registerSchema = z
@@ -36,7 +43,7 @@ export default function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Handle form submit
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     const result = registerSchema.safeParse(formData);
@@ -56,11 +63,8 @@ export default function RegisterScreen() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3020/auth/register", {
+      const response = await wrapFetch("http://localhost:3020/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           fullName: result.data.fullName,
           userName: result.data.userName,
@@ -78,29 +82,31 @@ export default function RegisterScreen() {
         window.location.href = "/";
       } else {
         // Handle API errors
-        if (data.message === "User with this email already exists") {
-          setErrors({ email: "User with this email already exists" });
-        } else if (data.message === "Username is already taken") {
-          setErrors({ userName: "Username is already taken" });
+        if (data.message === RegisterError.EMAIL_TAKEN) {
+          setErrors({ email: RegisterError.EMAIL_TAKEN });
+        } else if (data.message === RegisterError.USERNAME_TAKEN) {
+          setErrors({ userName: RegisterError.USERNAME_TAKEN });
         } else {
-          setErrors({ submit: data.message || "Registration failed" });
+          setErrors({
+            submit: data.message || RegisterError.REGISTRATION_FAILED,
+          });
         }
       }
     } catch (error) {
       console.error("Registration error:", error);
-      setErrors({ submit: "Network error. Please try again." });
+      setErrors({ submit: RegisterError.REGISTRATION_FAILED });
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-900 px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-10">
+    <div className="min-h-screen flex items-center justify-center bg-blue-900 px-4 py-8">
+      <div className="bg-white rounded-2xl shadow-2xl p-10">
         <h1 className="text-3xl font-bold text-blue-800 mb-8 text-center">
           Join Wealth Tracker
         </h1>

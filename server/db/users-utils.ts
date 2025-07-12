@@ -1,4 +1,10 @@
 import { client, connect } from "./collection-utils.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET =
+  process.env.JWT_SECRET || "your-secret-key-change-in-production";
+const SALT_ROUNDS = 12;
 
 export async function logIn(username: string, password: string) {
   await connect();
@@ -15,13 +21,26 @@ export async function logIn(username: string, password: string) {
       throw new Error("User not found");
     }
 
-    if (result.password !== password) {
+    // Compare hashed password
+    const isValidPassword = await bcrypt.compare(password, result.password);
+    if (!isValidPassword) {
       throw new Error("Invalid password");
     }
 
-    // Return user data without password
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        userId: result._id,
+        userName: result.userName,
+        email: result.email,
+      },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    // Return user data without password but with token
     const { password: _, ...userWithoutPassword } = result;
-    return userWithoutPassword;
+    return { ...userWithoutPassword, token };
   } catch (error) {
     console.error("Error logging in:", error);
     throw error;
@@ -50,14 +69,26 @@ export async function signUp(
     throw new Error("Username is already taken");
   }
 
+  // Hash password
+  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
   const newUser = {
     fullName,
     userName,
     email,
-    password,
+    password: hashedPassword,
     createdAt: new Date(),
   };
 
   const result = await collection.insertOne(newUser);
-  return { ...newUser, _id: result.insertedId };
+  const { password: _, ...userWithoutPassword } = newUser;
+  return { ...userWithoutPassword, _id: result.insertedId };
+}
+
+export function verifyToken(token: string) {
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch (error) {
+    throw new Error("Invalid token");
+  }
 }
