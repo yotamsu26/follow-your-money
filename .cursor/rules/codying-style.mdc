@@ -1,0 +1,81 @@
+---
+description: Coding style guidelines
+globs:
+alwaysApply: true
+---
+
+# Coding Style Guidelines
+
+**Always apply these rules to all code in this repository.**
+
+---
+
+## 1. Consistency
+
+- Maintain a consistent style with existing code, **unless** the existing code does not follow these guidelines.
+
+---
+
+## 2. Variable Declarations
+
+- Use `const` for variables that are not reassigned.
+
+---
+
+## 3. Asynchronous Code
+
+- Use `async/await` for asynchronous code.
+- **Do not** use `.then`, `.catch`, or `.finally`.
+
+---
+
+## 4. Exports
+
+- Use **named exports**.
+- **Do not** use default exports.
+
+---
+
+## 5. Function Declarations
+
+- Use function declarations.
+- **Do not** use arrow functions.
+
+---
+
+## 6. TypeScript Strict Mode
+
+- All code must be compliant with `strict` mode as defined in `tsconfig.json`.
+
+---
+
+## 7. Comments
+
+- **Do not** generate new comments unless absolutely necessary or explicitly requested.
+- When refactoring, keep existing comments, but fix grammar errors or poor phrasing.
+
+---
+
+## 8. File Guidelines
+
+- max 250 lines of code per file
+
+## Example
+
+**✅ Correct:**
+
+```ts
+export const fetchData = async (): Promise<Data> => {
+  const result = await apiCall();
+  return result;
+};
+```
+
+**❌ Incorrect:**
+
+```ts
+// This is a new comment
+export default function fetchData() {
+  return apiCall().then((result) => result);
+}
+```
