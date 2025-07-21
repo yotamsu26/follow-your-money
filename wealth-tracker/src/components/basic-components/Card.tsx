@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MoneyLocationData } from "../../hooks/useDashboard";
+import { MoneyLocationData } from "../../types/money-location-types";
 import {
   formatAccountType,
   formatAmount,

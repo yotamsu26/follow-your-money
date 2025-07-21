@@ -1,4 +1,4 @@
-import { MoneyLocationData } from "../../hooks/useDashboard";
+import { MoneyLocationData } from "../../types/money-location-types";
 
 interface GoalMoneyLocationConnectionProps {
   formData: {

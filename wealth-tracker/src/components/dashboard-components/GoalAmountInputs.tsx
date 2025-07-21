@@ -1,3 +1,5 @@
+import { getCurrencySymbol, Currency } from "../../utils/currency-utils";
+
 interface GoalAmountInputsProps {
   formData: {
     target_amount: string;
@@ -5,6 +7,7 @@ interface GoalAmountInputsProps {
     deadline: string;
     description: string;
     money_location_id: string;
+    currency: string;
   };
   handleChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -17,6 +20,8 @@ export function GoalAmountInputs({
   handleChange,
   today,
 }: GoalAmountInputsProps) {
+  const currencySymbol = getCurrencySymbol(formData.currency as Currency);
+
   return (
     <>
       {/* Target & Current Amount */}
@@ -29,7 +34,9 @@ export function GoalAmountInputs({
             Target Amount *
           </label>
           <div className="relative">
-            <span className="absolute left-3 top-3 text-gray-500">$</span>
+            <span className="absolute left-3 top-3 text-gray-500">
+              {currencySymbol}
+            </span>
             <input
               type="number"
               id="target_amount"
@@ -53,7 +60,9 @@ export function GoalAmountInputs({
             Current Amount
           </label>
           <div className="relative">
-            <span className="absolute left-3 top-3 text-gray-500">$</span>
+            <span className="absolute left-3 top-3 text-gray-500">
+              {currencySymbol}
+            </span>
             <input
               type="number"
               id="current_amount"

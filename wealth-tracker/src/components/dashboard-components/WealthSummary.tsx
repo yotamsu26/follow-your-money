@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { MoneyLocationData } from "../../hooks/useDashboard";
+import { MoneyLocationData } from "../../types/money-location-types";
+import { Currency } from "../../utils/currency-utils";
+import { getCurrencySymbol } from "../../utils/currency-utils";
 import {
   calculateAssetAllocation,
   calculateTotalWealth,
@@ -71,8 +73,8 @@ export function WealthSummary({ moneyLocations }: WealthSummaryProps) {
         try {
           const converted = await currencyService.convertCurrency(
             totalWealth,
-            "USD",
-            selectedCurrency
+            Currency.USD,
+            selectedCurrency as Currency
           );
           setConvertedWealth(converted);
         } catch (error) {
@@ -85,22 +87,6 @@ export function WealthSummary({ moneyLocations }: WealthSummaryProps) {
 
     convertWealth();
   }, [totalWealth, selectedCurrency]);
-
-  function getCurrencySymbol(currency: string) {
-    const symbols: { [key: string]: string } = {
-      USD: "$",
-      EUR: "€",
-      GBP: "£",
-      ILS: "₪",
-      JPY: "¥",
-      CAD: "C$",
-      AUD: "A$",
-      CHF: "CHF",
-      CNY: "¥",
-      INR: "₹",
-    };
-    return symbols[currency] || currency;
-  }
 
   function getAccountTypeColor(accountType: string) {
     switch (accountType) {
@@ -160,7 +146,7 @@ export function WealthSummary({ moneyLocations }: WealthSummaryProps) {
             <span className="animate-pulse">Loading...</span>
           ) : (
             `${getCurrencySymbol(
-              selectedCurrency
+              selectedCurrency as Currency
             )}${convertedWealth.toLocaleString(undefined, {
               maximumFractionDigits: 0,
             })}`

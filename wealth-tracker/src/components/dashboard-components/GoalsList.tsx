@@ -1,4 +1,5 @@
-import { GoalData } from "../../../../server/db/database-schemas";
+import { GoalData } from "../../types/types";
+import { formatCurrencyAmount } from "../../utils/currency-utils";
 
 interface GoalsListProps {
   goals: GoalData[];
@@ -7,17 +8,17 @@ interface GoalsListProps {
 }
 
 export function GoalsList({ goals, onEditGoal, onDeleteGoal }: GoalsListProps) {
-  const calculateProgress = (current: number, target: number) => {
+  function calculateProgress(current: number, target: number): number {
     return Math.min((current / target) * 100, 100);
-  };
+  }
 
-  const getProgressColor = (progress: number) => {
+  function getProgressColor(progress: number): string {
     if (progress >= 80) return "bg-green-500";
     if (progress >= 50) return "bg-yellow-500";
     return "bg-red-500";
-  };
+  }
 
-  const getCategoryIcon = (category: string) => {
+  function getCategoryIcon(category: string): string {
     switch (category) {
       case "Safety":
         return "🛡️";
@@ -28,9 +29,9 @@ export function GoalsList({ goals, onEditGoal, onDeleteGoal }: GoalsListProps) {
       default:
         return "🎯";
     }
-  };
+  }
 
-  function daysUntilDeadline(deadline: string) {
+  function daysUntilDeadline(deadline: string): number {
     const today = new Date();
     const deadlineDate = new Date(deadline);
     const diffTime = deadlineDate.getTime() - today.getTime();
@@ -38,7 +39,7 @@ export function GoalsList({ goals, onEditGoal, onDeleteGoal }: GoalsListProps) {
     return diffDays;
   }
 
-  async function handleDeleteGoal(goalId: string) {
+  async function handleDeleteGoal(goalId: string): Promise<void> {
     if (window.confirm("Are you sure you want to delete this goal?")) {
       await onDeleteGoal(goalId);
     }
@@ -83,8 +84,8 @@ export function GoalsList({ goals, onEditGoal, onDeleteGoal }: GoalsListProps) {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-800">
-                    ${goal.current_amount.toLocaleString()} / $
-                    {goal.target_amount.toLocaleString()}
+                    {formatCurrencyAmount(goal.current_amount, goal.currency)} /{" "}
+                    {formatCurrencyAmount(goal.target_amount, goal.currency)}
                   </p>
                   <p className="text-xs text-gray-500">
                     {daysLeft > 0 ? `${daysLeft} days left` : "Overdue"}

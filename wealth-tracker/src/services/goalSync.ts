@@ -1,6 +1,7 @@
 import { wrapFetch } from "../api/api-calls";
 import { getItem } from "../storage/local-storage-util";
-import { GoalData } from "../../../server/db/database-schemas";
+import { GoalData } from "../types/types";
+import { Currency } from "../utils/currency-utils";
 import currencyService from "./currencyService";
 
 export interface GoalSyncService {
@@ -92,7 +93,7 @@ export function createGoalSync(handleAuthFailure: () => void): GoalSyncService {
               connectedLocation.amount !== goal.current_amount
             ) {
               // Convert the amount to the goal's currency (default to USD if not set)
-              const goalCurrency = goal.currency || "USD";
+              const goalCurrency = goal.currency || Currency.USD;
               const convertedAmount = await currencyService.convertCurrency(
                 connectedLocation.amount,
                 connectedLocation.currency,

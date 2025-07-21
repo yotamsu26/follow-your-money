@@ -1,3 +1,5 @@
+import { Currency } from "../utils/currency-utils";
+
 interface ExchangeRates {
   [key: string]: number;
 }
@@ -22,12 +24,6 @@ class CurrencyService {
     EUR: 0.85,
     GBP: 0.73,
     ILS: 3.4,
-    JPY: 110,
-    CAD: 1.25,
-    AUD: 1.35,
-    CHF: 0.92,
-    CNY: 6.45,
-    INR: 74.5,
   };
 
   private constructor() {}
@@ -70,45 +66,67 @@ class CurrencyService {
 
   async convertCurrency(
     amount: number,
-    fromCurrency: string,
-    toCurrency: string
+    fromCurrency: Currency,
+    toCurrency: Currency
   ): Promise<number> {
     if (fromCurrency === toCurrency) {
       return amount;
     }
+    this.validateCurrency(fromCurrency);
+    this.validateCurrency(toCurrency);
 
     const rates = await this.getExchangeRates();
 
     // Convert to USD first, then to target currency
     const usdAmount =
-      fromCurrency === "USD" ? amount : amount / (rates[fromCurrency] || 1);
+      fromCurrency === Currency.USD
+        ? amount
+        : amount / (rates[fromCurrency] || 1);
     const targetAmount =
-      toCurrency === "USD" ? usdAmount : usdAmount * (rates[toCurrency] || 1);
+      toCurrency === Currency.USD
+        ? usdAmount
+        : usdAmount * (rates[toCurrency] || 1);
 
     return targetAmount;
   }
 
-  async getRate(fromCurrency: string, toCurrency: string): Promise<number> {
+  async getRate(fromCurrency: Currency, toCurrency: Currency): Promise<number> {
     if (fromCurrency === toCurrency) {
       return 1;
     }
 
+    this.validateCurrency(fromCurrency);
+    this.validateCurrency(toCurrency);
+
     const rates = await this.getExchangeRates();
 
     // Convert to USD first, then to target currency
-    const usdRate = fromCurrency === "USD" ? 1 : 1 / (rates[fromCurrency] || 1);
+    const usdRate =
+      fromCurrency === Currency.USD ? 1 : 1 / (rates[fromCurrency] || 1);
     const targetRate =
-      toCurrency === "USD" ? usdRate : usdRate * (rates[toCurrency] || 1);
+      toCurrency === Currency.USD
+        ? usdRate
+        : usdRate * (rates[toCurrency] || 1);
 
     return targetRate;
   }
 
-  getSupportedCurrencies(): string[] {
-    return Object.keys(this.FALLBACK_RATES);
+  getSupportedCurrencies(): Currency[] {
+    return Object.values(Currency);
+  }
+
+  private validateCurrency(currency: Currency): void {
+    if (!Object.values(Currency).includes(currency)) {
+      throw new Error(
+        `Unsupported currency: ${currency}. Supported currencies: ${Object.values(
+          Currency
+        ).join(", ")}`
+      );
+    }
   }
 
   isUsingLiveRates(): boolean {
-    return this.lastUpdated > 0 && Object.keys(this.exchangeRates).length > 10;
+    return this.lastUpdated > 0 && Object.keys(this.exchangeRates).length >= 4;
   }
 }
 

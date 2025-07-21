@@ -1,4 +1,5 @@
-import { MoneyLocationData } from "../hooks/useDashboard";
+import { MoneyLocationData } from "../types/money-location-types";
+import { Currency } from "../utils/currency-utils";
 import currencyService from "../services/currencyService";
 
 export async function calculateTotalWealth(
@@ -10,7 +11,7 @@ export async function calculateTotalWealth(
     const usdAmount = await currencyService.convertCurrency(
       location.amount,
       location.currency,
-      "USD"
+      Currency.USD
     );
     total += usdAmount;
   }
@@ -33,7 +34,7 @@ export async function calculateAssetAllocation(
     const usdAmount = await currencyService.convertCurrency(
       location.amount,
       location.currency,
-      "USD"
+      Currency.USD
     );
 
     allocation[location.account_type] =

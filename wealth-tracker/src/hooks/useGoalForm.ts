@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { GoalData } from "../../../server/db/database-schemas";
-import { MoneyLocationData } from "./useDashboard";
+import { GoalData } from "../types/types";
+import { MoneyLocationData } from "../types/money-location-types";
+import { Currency } from "../utils/currency-utils";
 
 interface UseGoalFormProps {
   goal?: GoalData | null;
@@ -90,6 +91,7 @@ export function useGoalForm({
         current_amount: currentAmount,
         deadline: formData.deadline,
         category: formData.category,
+        currency: formData.currency as Currency, // Goal's own currency
         description: formData.description,
         money_location_id: formData.money_location_id || undefined,
         money_location_name: selectedMoneyLocation?.location_name || undefined,
@@ -112,6 +114,22 @@ export function useGoalForm({
     >
   ) {
     const { name, value } = e.target;
+
+    // Auto-fill currency when money location is selected
+    if (name === "money_location_id" && value) {
+      const selectedLocation = moneyLocations.find(
+        (location) => location.money_location_id === value
+      );
+      if (selectedLocation) {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+          currency: selectedLocation.currency,
+        }));
+        return;
+      }
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   }
 
