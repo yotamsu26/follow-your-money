@@ -1,5 +1,5 @@
 import { GoalData } from "../../types/types";
-import { MoneyLocationData } from "../../types/types";
+import { MoneyLocationData } from "../../types/money-location-types";
 import { useGoalForm } from "../../hooks/useGoalForm";
 import { GoalFormFields } from "./GoalFormFields";
 import { GoalMoneyLocationConnection } from "./GoalMoneyLocationConnection";

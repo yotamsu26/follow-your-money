@@ -1,3 +1,5 @@
+import { getCurrencySymbol, Currency } from "../../utils/currency-utils";
+
 interface GoalAmountInputsProps {
   formData: {
     target_amount: string;
@@ -18,21 +20,7 @@ export function GoalAmountInputs({
   handleChange,
   today,
 }: GoalAmountInputsProps) {
-  const getCurrencySymbol = (currency: string) => {
-    switch (currency) {
-      case "EUR":
-        return "€";
-      case "GBP":
-        return "£";
-      case "ILS":
-        return "₪";
-      case "USD":
-      default:
-        return "$";
-    }
-  };
-
-  const currencySymbol = getCurrencySymbol(formData.currency);
+  const currencySymbol = getCurrencySymbol(formData.currency as Currency);
 
   return (
     <>

@@ -1,4 +1,4 @@
-import { Currency } from "../types/types";
+import { Currency } from "../utils/currency-utils";
 
 interface ExchangeRates {
   [key: string]: number;

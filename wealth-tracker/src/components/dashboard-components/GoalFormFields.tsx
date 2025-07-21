@@ -1,11 +1,12 @@
 import { GoalCategory } from "./GoalForm";
-import { Currency } from "../../types/types";
+import { Currency } from "../../utils/currency-utils";
 
 interface GoalFormFieldsProps {
   formData: {
     name: string;
     category: string;
     currency: string;
+    money_location_id: string;
   };
   handleChange: (
     e: React.ChangeEvent<
@@ -102,6 +103,7 @@ export function GoalFormFields({
             value={formData.currency || "USD"}
             onChange={handleChange}
             className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white cursor-pointer transition-all"
+            disabled={!!formData.money_location_id}
           >
             {Object.values(Currency).map((currency) => (
               <option key={currency} value={currency}>
@@ -126,7 +128,9 @@ export function GoalFormFields({
           </div>
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          Select the currency for your goal amounts
+          {formData.money_location_id
+            ? "Auto-filled from connected account"
+            : "Select the currency for your goal amounts"}
         </p>
       </div>
     </>

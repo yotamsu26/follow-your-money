@@ -1,4 +1,4 @@
-import { MoneyLocationData } from "../../types/types";
+import { MoneyLocationData } from "../../types/money-location-types";
 
 interface CardModalsProps {
   moneyLocationData: MoneyLocationData;

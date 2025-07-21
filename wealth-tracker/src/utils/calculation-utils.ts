@@ -1,4 +1,5 @@
-import { MoneyLocationData, Currency } from "../types/types";
+import { MoneyLocationData } from "../types/money-location-types";
+import { Currency } from "../utils/currency-utils";
 import currencyService from "../services/currencyService";
 
 export async function calculateTotalWealth(

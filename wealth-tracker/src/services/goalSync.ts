@@ -1,6 +1,7 @@
 import { wrapFetch } from "../api/api-calls";
 import { getItem } from "../storage/local-storage-util";
-import { GoalData, Currency } from "../types/types";
+import { GoalData } from "../types/types";
+import { Currency } from "../utils/currency-utils";
 import currencyService from "./currencyService";
 
 export interface GoalSyncService {

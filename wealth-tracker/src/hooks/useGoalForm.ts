@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { GoalData, Currency } from "../types/types";
-import { MoneyLocationData } from "../types/types";
+import { GoalData } from "../types/types";
+import { MoneyLocationData } from "../types/money-location-types";
+import { Currency } from "../utils/currency-utils";
 
 interface UseGoalFormProps {
   goal?: GoalData | null;
@@ -113,6 +114,22 @@ export function useGoalForm({
     >
   ) {
     const { name, value } = e.target;
+
+    // Auto-fill currency when money location is selected
+    if (name === "money_location_id" && value) {
+      const selectedLocation = moneyLocations.find(
+        (location) => location.money_location_id === value
+      );
+      if (selectedLocation) {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+          currency: selectedLocation.currency,
+        }));
+        return;
+      }
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   }
 

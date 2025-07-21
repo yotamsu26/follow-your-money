@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { wrapFetch } from "../api/api-calls";
 import { getItem, removeItem } from "../storage/local-storage-util";
-import { MoneyLocationData } from "../types/types";
+import { MoneyLocationData } from "../types/money-location-types";
 
 interface UserData {
   _id: string;

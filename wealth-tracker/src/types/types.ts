@@ -1,32 +1,4 @@
-export enum Currency {
-  USD = "USD",
-  EUR = "EUR",
-  GBP = "GBP",
-  ILS = "ILS",
-}
-
-export enum AccountType {
-  CASH = "cash",
-  BANK_ACCOUNT = "bank_account",
-  PENSION_ACCOUNT = "pension_account",
-  REAL_ESTATE = "real_estate",
-  INVESTMENT = "investment",
-}
-
-export interface MoneyLocationData {
-  user_id: string;
-  money_location_id: string;
-  location_name: string;
-  amount: number;
-  currency: Currency;
-  last_checked: string;
-  account_type: AccountType;
-  property_address?: string;
-  purchase_date?: string;
-  purchase_price?: number;
-  attached_files?: string[];
-  notes?: string;
-}
+import { Currency } from "../utils/currency-utils";
 
 export interface GoalData {
   goal_id: string;
