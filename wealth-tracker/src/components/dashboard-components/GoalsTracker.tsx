@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useGoals } from "../../hooks/useGoals";
-import { GoalData } from "../../../../server/db/database-schemas";
+import { GoalData } from "../../types/types";
 import { GoalForm } from "./GoalForm";
 import { GoalsList } from "./GoalsList";
 import { MoneyLocationData } from "../../hooks/useDashboard";

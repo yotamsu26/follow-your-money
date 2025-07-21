@@ -1,4 +1,4 @@
-import { Currency, GoalData } from "../../../../server/db/database-schemas";
+import { GoalData } from "../../types/types";
 import { MoneyLocationData } from "../../hooks/useDashboard";
 import { useGoalForm } from "../../hooks/useGoalForm";
 import { GoalFormFields } from "./GoalFormFields";

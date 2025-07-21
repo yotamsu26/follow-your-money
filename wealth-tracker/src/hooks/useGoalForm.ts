@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { GoalData } from "../../../server/db/database-schemas";
+import { GoalData, Currency } from "../types/types";
 import { MoneyLocationData } from "./useDashboard";
 
 interface UseGoalFormProps {
@@ -90,6 +90,7 @@ export function useGoalForm({
         current_amount: currentAmount,
         deadline: formData.deadline,
         category: formData.category,
+        currency: formData.currency as Currency, // Goal's own currency
         description: formData.description,
         money_location_id: formData.money_location_id || undefined,
         money_location_name: selectedMoneyLocation?.location_name || undefined,

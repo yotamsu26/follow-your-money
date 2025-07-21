@@ -1,6 +1,6 @@
 import { wrapFetch } from "../api/api-calls";
 import { getItem } from "../storage/local-storage-util";
-import { GoalData } from "../../../server/db/database-schemas";
+import { GoalData } from "../types/types";
 import currencyService from "./currencyService";
 
 export interface GoalSyncService {

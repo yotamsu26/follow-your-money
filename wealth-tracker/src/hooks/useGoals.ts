@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { removeItem } from "../storage/local-storage-util";
 import { createGoalApi } from "../services/goalApi";
 import { createGoalSync } from "../services/goalSync";
-import { GoalData } from "../../../server/db/database-schemas";
+import { GoalData } from "../types/types";
 
 export function useGoals() {
   const router = useRouter();

@@ -1,4 +1,5 @@
 import { GoalCategory } from "./GoalForm";
+import { Currency } from "../../types/types";
 
 interface GoalFormFieldsProps {
   formData: {
@@ -17,6 +18,13 @@ export function GoalFormFields({
   formData,
   handleChange,
 }: GoalFormFieldsProps) {
+  const currencyLabels = {
+    [Currency.USD]: "USD - US Dollar",
+    [Currency.EUR]: "EUR - Euro",
+    [Currency.GBP]: "GBP - British Pound",
+    [Currency.ILS]: "ILS - Israeli Shekel",
+  };
+
   return (
     <>
       {/* Goal Name */}
@@ -95,14 +103,11 @@ export function GoalFormFields({
             onChange={handleChange}
             className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white cursor-pointer transition-all"
           >
-            <option value="USD">USD - US Dollar</option>
-            <option value="EUR">EUR - Euro</option>
-            <option value="GBP">GBP - British Pound</option>
-            <option value="ILS">ILS - Israeli Shekel</option>
-            <option value="JPY">JPY - Japanese Yen</option>
-            <option value="CAD">CAD - Canadian Dollar</option>
-            <option value="AUD">AUD - Australian Dollar</option>
-            <option value="CHF">CHF - Swiss Franc</option>
+            {Object.values(Currency).map((currency) => (
+              <option key={currency} value={currency}>
+                {currencyLabels[currency]}
+              </option>
+            ))}
           </select>
           <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
             <svg

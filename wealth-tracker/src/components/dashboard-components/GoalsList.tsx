@@ -1,4 +1,4 @@
-import { GoalData } from "../../../../server/db/database-schemas";
+import { GoalData } from "../../types/types";
 
 interface GoalsListProps {
   goals: GoalData[];
