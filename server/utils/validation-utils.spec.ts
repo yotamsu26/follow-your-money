@@ -2,7 +2,7 @@ import {
   AccountType,
   Currency,
   MoneyLocationData,
-} from "../db/collection-utils";
+} from "../db/database-schemas";
 import { validData } from "./validation-utils";
 
 describe("validData", () => {

@@ -1,6 +1,6 @@
-import { client, connect } from "./collection-utils.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { client, connect } from "./database-schemas.js";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "your-secret-key-change-in-production";

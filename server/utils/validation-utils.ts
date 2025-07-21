@@ -1,4 +1,4 @@
-import { AccountType, MoneyLocationData } from "../db/collection-utils.js";
+import { AccountType, MoneyLocationData } from "../db/database-schemas.js";
 
 export function validData(data: MoneyLocationData) {
   if (

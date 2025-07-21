@@ -106,9 +106,4 @@ The Users collection stores:
 
 ## 🔄 Next Steps
 
-1. Add password hashing
-2. Implement JWT authentication
-3. Add session management
-4. Create protected routes
-5. Add logout functionality
-6. Implement password reset feature
+- Implement password reset feature

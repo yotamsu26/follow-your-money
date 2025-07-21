@@ -21,3 +21,9 @@ cd wealth-tracker
 npm install
 npm run dev
 ```
+
+# Next Steps
+
+- move to yarn
+- add option to add files to assets
+- add tool tip to complete the sentece
