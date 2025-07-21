@@ -3,10 +3,10 @@ import {
   deleteMoneyLocation,
   updateMoneyLocation,
   getUserMoneyLocations,
-  insertTransaction,
-  getUserTransactions,
-  getTransactionsByCategory,
-  getMonthlyExpenses,
+  insertGoal,
+  deleteGoal,
+  updateGoal,
+  getUserGoals,
 } from "./db/collection-utils.js";
 import express from "express";
 import { validData } from "./utils/validation-utils.js";
@@ -117,94 +117,87 @@ app.delete(
   }
 );
 
-// Transaction Routes
+// Goals Routes
 
-// POST route to create a new transaction (protected)
-app.post("/transactions", authenticateToken, async (req, res) => {
-  try {
-    const transactionData = req.body;
-
-    // Validate required fields
-    if (
-      !transactionData.user_id ||
-      !transactionData.type ||
-      !transactionData.amount
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing required fields: user_id, type, amount",
-      });
-    }
-
-    const result = await insertTransaction(transactionData);
-    res.json({ success: true, data: result });
-  } catch (error) {
-    console.error("Error creating transaction:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Can't create transaction" });
-  }
-});
-
-// GET route to get user transactions (protected)
-app.get("/transactions/:user_id", authenticateToken, async (req, res) => {
+// GET route to get all goals for a user (protected)
+app.get("/goals/:user_id", authenticateToken, async (req, res) => {
   try {
     const { user_id } = req.params;
-    const limit = parseInt(req.query.limit as string) || 50;
-
-    const transactions = await getUserTransactions(user_id, limit);
-    res.json({ success: true, data: transactions });
+    const goals = await getUserGoals(user_id);
+    res.json({ success: true, data: goals });
   } catch (error) {
-    console.error("Error fetching transactions:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Can't fetch transactions" });
+    console.error("Error fetching goals:", error);
+    res.status(500).json({ success: false, message: "Can't fetch goals" });
   }
 });
 
-// GET route to get transactions by category (protected)
-app.get(
-  "/transactions/:user_id/category/:category",
-  authenticateToken,
-  async (req, res) => {
-    try {
-      const { user_id, category } = req.params;
-      const transactions = await getTransactionsByCategory(
-        user_id,
-        category as any
-      );
-      res.json({ success: true, data: transactions });
-    } catch (error) {
-      console.error("Error fetching transactions by category:", error);
-      res.status(500).json({
+// POST route to create a new goal (protected)
+app.post("/goals", authenticateToken, async (req, res) => {
+  try {
+    const goalData = req.body;
+
+    // Validate required fields
+    if (!goalData.user_id || !goalData.name || !goalData.target_amount) {
+      return res.status(400).json({
         success: false,
-        message: "Can't fetch transactions by category",
+        message: "Missing required fields: user_id, name, target_amount",
       });
     }
-  }
-);
 
-// GET route to get monthly expenses (protected)
-app.get(
-  "/transactions/:user_id/monthly/:year/:month",
-  authenticateToken,
-  async (req, res) => {
-    try {
-      const { user_id, year, month } = req.params;
-      const transactions = await getMonthlyExpenses(
-        user_id,
-        parseInt(year),
-        parseInt(month)
-      );
-      res.json({ success: true, data: transactions });
-    } catch (error) {
-      console.error("Error fetching monthly expenses:", error);
-      res
-        .status(500)
-        .json({ success: false, message: "Can't fetch monthly expenses" });
-    }
+    // Add timestamps
+    goalData.created_at = new Date();
+    goalData.updated_at = new Date();
+
+    const result = await insertGoal(goalData);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error("Error creating goal:", error);
+    res.status(500).json({ success: false, message: "Can't create goal" });
   }
-);
+});
+
+// PUT route to update a goal (protected)
+app.put("/goals/:goal_id", authenticateToken, async (req, res) => {
+  try {
+    const { goal_id } = req.params;
+    const updateData = req.body;
+
+    // Add timestamps
+    updateData.updated_at = new Date();
+
+    const result = await updateGoal(goal_id, updateData);
+
+    if (result.matchedCount === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Goal not found" });
+    }
+
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error("Error updating goal:", error);
+    res.status(500).json({ success: false, message: "Can't update goal" });
+  }
+});
+
+// DELETE route to delete a goal (protected)
+app.delete("/goals/:goal_id", authenticateToken, async (req, res) => {
+  try {
+    const { goal_id } = req.params;
+    const result = await deleteGoal(goal_id);
+
+    if (result.deletedCount === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Goal not found" });
+    }
+
+    res.json({ success: true, message: "Goal deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting goal:", error);
+    res.status(500).json({ success: false, message: "Can't delete goal" });
+  }
+});
 
 // Start the server
 app.listen(PORT, () => {

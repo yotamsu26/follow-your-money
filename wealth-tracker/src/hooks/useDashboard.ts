@@ -163,17 +163,110 @@ export function useDashboard() {
       }
 
       if (data.success) {
-        // Refresh the money locations list
         await fetchMoneyLocations(parsedUserData.userName);
-        return true; // Success
+        return true;
       } else {
         setError(data.message || "Failed to add money location");
-        return false; // Failure
+        return false;
       }
     } catch (error) {
       console.error("Error adding money location:", error);
       setError("Network error. Please try again.");
-      return false; // Failure
+      return false;
+    }
+  }
+
+  async function handleDeleteMoneyLocation(moneyLocationId: string) {
+    try {
+      const userData = getItem("userData");
+      if (!userData) {
+        handleAuthFailure();
+        return;
+      }
+
+      const parsedUserData = JSON.parse(userData);
+      const token = parsedUserData.token;
+
+      const response = await wrapFetch(
+        `http://localhost:3020/money-locations/${moneyLocationId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.status === 401 || response.status === 403) {
+        handleAuthFailure();
+        return;
+      }
+
+      if (data.success) {
+        await fetchMoneyLocations(parsedUserData.userName);
+        return true;
+      } else {
+        setError(data.message || "Failed to delete money location");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error deleting money location:", error);
+      setError("Network error. Please try again.");
+      return false;
+    }
+  }
+
+  async function handleUpdateMoneyLocation(
+    moneyLocationId: string,
+    newAmount: number,
+    onGoalSync?: () => void
+  ) {
+    try {
+      const userData = getItem("userData");
+      if (!userData) {
+        handleAuthFailure();
+        return;
+      }
+
+      const parsedUserData = JSON.parse(userData);
+      const token = parsedUserData.token;
+
+      const response = await wrapFetch(
+        `http://localhost:3020/money-locations/${moneyLocationId}`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            amount: newAmount,
+            last_checked: new Date().toISOString(),
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.status === 401 || response.status === 403) {
+        handleAuthFailure();
+        return;
+      }
+
+      if (data.success) {
+        await fetchMoneyLocations(parsedUserData.userName);
+
+        if (onGoalSync) {
+          console.log("Money location updated - triggering goal sync");
+          await onGoalSync();
+        }
+
+        return true;
+      } else {
+        setError(data.message || "Failed to update money location");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error updating money location:", error);
+      setError("Network error. Please try again.");
+      return false;
     }
   }
 
@@ -184,6 +277,8 @@ export function useDashboard() {
     error,
     handleLogout,
     handleAddMoneyLocation,
+    handleDeleteMoneyLocation,
+    handleUpdateMoneyLocation,
     setError,
   };
 }

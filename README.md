@@ -26,3 +26,4 @@ npm run dev
 
 - move to yarn
 - add option to add files to assets
+- add tool tip to complete the sentece

@@ -4,8 +4,8 @@ import { AddMoneyLocationModal } from "../components/dashboard-components/AddMon
 import { WealthSummary } from "../components/dashboard-components/WealthSummary";
 import { GoalsTracker } from "../components/dashboard-components/GoalsTracker";
 import { MoneyLocationModalWrapper } from "../components/modal/MoneyLocationModalWrapper";
-import { calculateTotalWealth } from "../utils/calculation-utils";
 import { useDashboard } from "../hooks/useDashboard";
+import { useGoals } from "../hooks/useGoals";
 
 export default function Dashboard() {
   const {
@@ -15,17 +15,45 @@ export default function Dashboard() {
     error,
     handleLogout,
     handleAddMoneyLocation,
+    handleDeleteMoneyLocation,
+    handleUpdateMoneyLocation,
     setError,
   } = useDashboard();
 
+  const { syncGoalsWithMoneyLocations } = useGoals();
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const handleAddLocation = async (newLocationData: any) => {
+  async function handleAddLocation(newLocationData: any) {
     const success = await handleAddMoneyLocation(newLocationData);
     if (success) {
       setIsAddModalOpen(false);
     }
-  };
+  }
+
+  async function handleUpdateLocation(
+    moneyLocationId: string,
+    newAmount: number
+  ) {
+    const success = await handleUpdateMoneyLocation(
+      moneyLocationId,
+      newAmount,
+      async () => {
+        // Create updated money locations array with the new amount
+        const updatedMoneyLocations = moneyLocations.map((location) =>
+          location.money_location_id === moneyLocationId
+            ? {
+                ...location,
+                amount: newAmount,
+                last_checked: new Date().toISOString(),
+              }
+            : location
+        );
+        await syncGoalsWithMoneyLocations(updatedMoneyLocations);
+      }
+    );
+    return success;
+  }
 
   if (isLoading) {
     return (
@@ -81,7 +109,10 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           {/* Goals Tracker */}
           <div className="lg:col-span-2">
-            <GoalsTracker totalWealth={calculateTotalWealth(moneyLocations)} />
+            <GoalsTracker
+              userName={userData?.userName || ""}
+              moneyLocations={moneyLocations}
+            />
           </div>
         </div>
 
@@ -122,6 +153,8 @@ export default function Dashboard() {
                 <Card
                   key={location.money_location_id}
                   moneyLocationData={location}
+                  onDelete={handleDeleteMoneyLocation}
+                  onUpdateAmount={handleUpdateLocation}
                 />
               ))}
             </div>
