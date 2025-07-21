@@ -1,4 +1,4 @@
-import { MoneyLocationData } from "../../hooks/useDashboard";
+import { MoneyLocationData } from "../../types/types";
 
 interface CardModalsProps {
   moneyLocationData: MoneyLocationData;

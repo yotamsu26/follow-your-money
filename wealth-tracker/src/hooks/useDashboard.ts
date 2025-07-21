@@ -2,21 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { wrapFetch } from "../api/api-calls";
 import { getItem, removeItem } from "../storage/local-storage-util";
-
-export interface MoneyLocationData {
-  user_id: string;
-  money_location_id: string;
-  location_name: string;
-  amount: number;
-  currency: string;
-  last_checked: string;
-  account_type: string;
-  property_address?: string;
-  purchase_date?: string;
-  purchase_price?: number;
-  attached_files?: string[];
-  notes?: string;
-}
+import { MoneyLocationData } from "../types/types";
 
 interface UserData {
   _id: string;

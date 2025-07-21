@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MoneyLocationData } from "../../hooks/useDashboard";
+import { MoneyLocationData, Currency } from "../../types/types";
 import {
   calculateAssetAllocation,
   calculateTotalWealth,
@@ -71,8 +71,8 @@ export function WealthSummary({ moneyLocations }: WealthSummaryProps) {
         try {
           const converted = await currencyService.convertCurrency(
             totalWealth,
-            "USD",
-            selectedCurrency
+            Currency.USD,
+            selectedCurrency as Currency
           );
           setConvertedWealth(converted);
         } catch (error) {

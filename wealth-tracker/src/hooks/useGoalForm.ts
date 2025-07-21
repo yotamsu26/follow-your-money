@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { GoalData, Currency } from "../types/types";
-import { MoneyLocationData } from "./useDashboard";
+import { MoneyLocationData } from "../types/types";
 
 interface UseGoalFormProps {
   goal?: GoalData | null;

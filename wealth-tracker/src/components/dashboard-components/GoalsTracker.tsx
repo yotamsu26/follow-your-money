@@ -3,7 +3,7 @@ import { useGoals } from "../../hooks/useGoals";
 import { GoalData } from "../../types/types";
 import { GoalForm } from "./GoalForm";
 import { GoalsList } from "./GoalsList";
-import { MoneyLocationData } from "../../hooks/useDashboard";
+import { MoneyLocationData } from "../../types/types";
 
 interface GoalsTrackerProps {
   userName: string;
