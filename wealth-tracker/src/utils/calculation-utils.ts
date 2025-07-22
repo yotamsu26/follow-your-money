@@ -1,6 +1,10 @@
 import { MoneyLocationData } from "../types/money-location-types";
 import { Currency } from "../utils/currency-utils";
 import currencyService from "../services/currencyService";
+import {
+  AVAILABLE_ACCOUNT_TYPES,
+  NON_AVAILABLE_ACCOUNT_TYPES,
+} from "../types/account-types";
 
 export async function calculateTotalWealth(
   moneyLocations: MoneyLocationData[]
@@ -61,4 +65,24 @@ export function calculateTotalWealthSync(
     const rate = currencyService.getExchangeRates()[location.currency] || 1;
     return total + location.amount / rate;
   }, 0);
+}
+
+export async function calculateAvailableWealth(
+  moneyLocations: MoneyLocationData[]
+): Promise<number> {
+  const availableLocations = moneyLocations.filter((location) =>
+    AVAILABLE_ACCOUNT_TYPES.includes(location.account_type)
+  );
+
+  return calculateTotalWealth(availableLocations);
+}
+
+export async function calculateNonAvailableWealth(
+  moneyLocations: MoneyLocationData[]
+): Promise<number> {
+  const nonAvailableLocations = moneyLocations.filter((location) =>
+    NON_AVAILABLE_ACCOUNT_TYPES.includes(location.account_type)
+  );
+
+  return calculateTotalWealth(nonAvailableLocations);
 }

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Button } from "../basic-components/Button";
 import { MoneyLocationForm } from "./MoneyLocationForm";
+import { CURRENCIES } from "../../types/currencies";
+import { ACCOUNT_TYPES } from "../../types/account-types";
 
 interface AddMoneyLocationModalProps {
   isOpen: boolean;
@@ -28,21 +30,6 @@ export function AddMoneyLocationModal({
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const CURRENCIES = [
-    { value: "USD", label: "USD" },
-    { value: "EUR", label: "EUR" },
-    { value: "GBP", label: "GBP" },
-    { value: "ILS", label: "ILS" },
-  ];
-
-  const ACCOUNT_TYPES = [
-    { value: "cash", label: "Cash" },
-    { value: "bank_account", label: "Bank Account" },
-    { value: "pension_account", label: "Pension Account" },
-    { value: "real_estate", label: "Real Estate" },
-    { value: "investment", label: "Investment" },
-  ];
-
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);
@@ -64,9 +51,10 @@ export function AddMoneyLocationModal({
         notes: "",
       });
       onClose();
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      console.error("Error adding money location:", error);
     }
+    setIsLoading(false);
   }
 
   function handleChange(
