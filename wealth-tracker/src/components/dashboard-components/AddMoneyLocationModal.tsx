@@ -3,11 +3,12 @@ import { Button } from "../basic-components/Button";
 import { MoneyLocationForm } from "./MoneyLocationForm";
 import { CURRENCIES } from "../../types/currencies";
 import { ACCOUNT_TYPES } from "../../types/account-types";
+import { wrapFetch } from "../../api/api-calls";
 
 interface AddMoneyLocationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (data: any) => void;
+  onAdd: (data: any) => Promise<void>;
   userName: string;
 }
 
@@ -29,17 +30,34 @@ export function AddMoneyLocationModal({
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);
     try {
-      onAdd({
+      const moneyLocationId = `${userName}_${Date.now()}`;
+
+      const moneyLocationData = {
         user_id: userName,
-        money_location_id: `${userName}_${Date.now()}`,
+        money_location_id: moneyLocationId,
         ...formData,
         last_checked: new Date().toISOString(),
-      });
+      };
+
+      await onAdd(moneyLocationData);
+
+      if (uploadedFiles.length > 0) {
+        try {
+          await uploadFiles(moneyLocationId, uploadedFiles);
+        } catch (error) {
+          console.error("File upload failed:", error);
+          alert(
+            "Money location created, but file upload failed. You can upload files later from the money location card."
+          );
+        }
+      }
+
       setFormData({
         location_name: "",
         amount: 0,
@@ -50,11 +68,53 @@ export function AddMoneyLocationModal({
         purchase_price: 0,
         notes: "",
       });
+      setUploadedFiles([]);
       onClose();
     } catch (error) {
       console.error("Error adding money location:", error);
+      alert("Failed to create money location. Please try again.");
     }
     setIsLoading(false);
+  }
+
+  async function uploadFiles(moneyLocationId: string, files: File[]) {
+    try {
+      const userData = localStorage.getItem("userData");
+      if (!userData) {
+        throw new Error("No user data found");
+      }
+
+      const parsedUserData = JSON.parse(userData);
+      const token = parsedUserData.token;
+
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append("files", file);
+      });
+
+      const response = await wrapFetch(
+        `http://localhost:3020/files/upload/${moneyLocationId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to upload files");
+      }
+
+      const result = await response.json();
+      console.log("Files uploaded successfully:", result);
+      return result;
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      throw error; // Re-throw to handle in the main function
+    }
   }
 
   function handleChange(
@@ -71,6 +131,12 @@ export function AddMoneyLocationModal({
     }));
   }
 
+  function handleFileChange(files: FileList | null) {
+    if (files) {
+      setUploadedFiles(Array.from(files));
+    }
+  }
+
   if (!isOpen) return null;
 
   return (
@@ -78,6 +144,7 @@ export function AddMoneyLocationModal({
       <MoneyLocationForm
         formData={formData}
         onChange={handleChange}
+        onFileChange={handleFileChange}
         currencies={CURRENCIES}
         accountTypes={ACCOUNT_TYPES}
       />
@@ -91,7 +158,11 @@ export function AddMoneyLocationModal({
           Cancel
         </Button>
         <Button type="submit" variant="primary" disabled={isLoading}>
-          {isLoading ? "Adding..." : "Add Location"}
+          {isLoading
+            ? uploadedFiles.length > 0
+              ? "Creating location and uploading files..."
+              : "Creating location..."
+            : "Add Location"}
         </Button>
       </div>
     </form>

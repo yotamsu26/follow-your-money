@@ -7,6 +7,10 @@ import {
 } from "../../utils/string-utils";
 import { CardModals } from "./CardModals";
 import { Tooltip } from "./Tooltip";
+import { EditIcon } from "../icons/EditIcon";
+import { DeleteIcon } from "../icons/DeleteIcon";
+import { FilesList } from "./FilesList";
+import { AccountType } from "../../types/account-types";
 
 interface CardProps {
   moneyLocationData: MoneyLocationData;
@@ -109,21 +113,9 @@ export function Card({
             <button
               onClick={() => setShowUpdateAmount(true)}
               className="text-blue-500 hover:text-blue-700 p-1 rounded-full hover:bg-blue-50 transition-colors"
-              title="Update amount"
+              title="Update current value"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
+              <EditIcon />
             </button>
           )}
           {onDelete && (
@@ -132,31 +124,18 @@ export function Card({
               className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition-colors"
               title="Delete money location"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
+              <DeleteIcon />
             </button>
           )}
         </div>
       </div>
 
       <div className="space-y-3">
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">Amount:</span>
-          <span className="text-lg font-bold text-gray-900">
-            {formatAmount(moneyLocationData.amount, moneyLocationData.currency)}
-          </span>
-        </div>
+        {moneyLocationData.account_type === AccountType.REAL_ESTATE ? (
+          <RealEstateDetails moneyLocationData={moneyLocationData} />
+        ) : (
+          <StandardAccountDetails moneyLocationData={moneyLocationData} />
+        )}
 
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-600">Last Checked:</span>
@@ -192,22 +171,7 @@ export function Card({
           </div>
         )}
 
-        {moneyLocationData.attached_files &&
-          moneyLocationData.attached_files.length > 0 && (
-            <div className="border-t pt-3">
-              <span className="text-sm text-gray-600">Attached Files:</span>
-              <div className="mt-1">
-                {moneyLocationData.attached_files.map((file, index) => (
-                  <span
-                    key={index}
-                    className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded mr-2 mb-1"
-                  >
-                    {file}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+        <FilesList moneyLocationId={moneyLocationData.money_location_id} />
       </div>
 
       <CardModals
@@ -223,6 +187,45 @@ export function Card({
         isDeleting={isDeleting}
         handleDelete={handleDelete}
       />
+    </div>
+  );
+}
+
+function RealEstateDetails({ moneyLocationData }: { moneyLocationData: any }) {
+  return (
+    <>
+      <div className="flex justify-between items-center">
+        <span className="text-sm text-gray-600">Current Value:</span>
+        <span className="text-lg font-bold text-gray-900">
+          {formatAmount(moneyLocationData.amount, moneyLocationData.currency)}
+        </span>
+      </div>
+      {moneyLocationData.purchase_price && (
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-gray-600">Purchase Price:</span>
+          <span className="text-sm text-gray-700">
+            {formatAmount(
+              moneyLocationData.purchase_price,
+              moneyLocationData.currency
+            )}
+          </span>
+        </div>
+      )}
+    </>
+  );
+}
+
+function StandardAccountDetails({
+  moneyLocationData,
+}: {
+  moneyLocationData: any;
+}) {
+  return (
+    <div className="flex justify-between items-center">
+      <span className="text-sm text-gray-600">Current Value:</span>
+      <span className="text-lg font-bold text-gray-900">
+        {formatAmount(moneyLocationData.amount, moneyLocationData.currency)}
+      </span>
     </div>
   );
 }
