@@ -1,5 +1,6 @@
 import { GoalData } from "../../types/types";
 import { formatCurrencyAmount } from "../../utils/currency-utils";
+import { Tooltip } from "../basic-components/Tooltip";
 
 interface GoalsListProps {
   goals: GoalData[];
@@ -91,9 +92,17 @@ export function GoalsList({ goals, onEditGoal, onDeleteGoal }: GoalsListProps) {
                     {daysLeft > 0 ? `${daysLeft} days left` : "Overdue"}
                   </p>
                   {goal.money_location_id && (
-                    <p className="text-xs text-blue-600 mt-1">
-                      🔗 Connected to {goal.money_location_name}
-                    </p>
+                    <Tooltip
+                      text={goal.money_location_name || ""}
+                      className="inline-block"
+                    >
+                      <p
+                        className="text-xs text-blue-600 mt-1 truncate"
+                        data-truncate="true"
+                      >
+                        🔗 Connected to {goal.money_location_name}
+                      </p>
+                    </Tooltip>
                   )}
                 </div>
               </div>

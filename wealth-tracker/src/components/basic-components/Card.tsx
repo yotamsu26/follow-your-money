@@ -6,6 +6,7 @@ import {
   formatDate,
 } from "../../utils/string-utils";
 import { CardModals } from "./CardModals";
+import { Tooltip } from "./Tooltip";
 
 interface CardProps {
   moneyLocationData: MoneyLocationData;
@@ -85,9 +86,17 @@ export function Card({
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow relative">
       <div className="flex justify-between items-start mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 truncate">
-          {moneyLocationData.location_name}
-        </h3>
+        <Tooltip
+          text={moneyLocationData.location_name}
+          className="flex-1 min-w-0"
+        >
+          <h3
+            className="text-lg font-semibold text-gray-800 truncate"
+            data-truncate="true"
+          >
+            {moneyLocationData.location_name}
+          </h3>
+        </Tooltip>
         <div className="flex items-center space-x-2">
           <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getAccountTypeColor(
