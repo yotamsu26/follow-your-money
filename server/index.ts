@@ -11,6 +11,7 @@ import {
 import express from "express";
 import { validData } from "./utils/validation-utils.js";
 import authRouter from "./auth-api.js";
+import fileRouter from "./routes/file-routes.js";
 import { authenticateToken } from "./middleware/auth.js";
 import cors from "cors";
 
@@ -24,12 +25,15 @@ app.use(
     origin: ["http://localhost:3000"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
   })
 );
 
 // Auth routes
 app.use("/auth", authRouter);
+
+// File routes
+app.use("/files", fileRouter);
 
 // GET route to get all money locations for a user (protected)
 app.get("/money-locations/:user_id", authenticateToken, async (req, res) => {
@@ -96,7 +100,8 @@ app.delete(
   async (req, res) => {
     try {
       const { money_location_id } = req.params;
-      const result = await deleteMoneyLocation(money_location_id);
+      const userId = (req as any).user.userId;
+      const result = await deleteMoneyLocation(money_location_id, userId);
 
       if (result.deletedCount === 0) {
         return res

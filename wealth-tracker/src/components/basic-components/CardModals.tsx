@@ -34,17 +34,17 @@ export function CardModals({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Update Amount
+              Update Current Value
             </h3>
             <p className="text-gray-600 mb-4">
-              Update the amount for "{moneyLocationData.location_name}"
+              Update the current value for "{moneyLocationData.location_name}"
             </p>
             <div className="mb-6">
               <label
                 htmlFor="newAmount"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                New Amount ({moneyLocationData.currency})
+                New Current Value ({moneyLocationData.currency})
               </label>
               <input
                 type="number"
@@ -52,7 +52,7 @@ export function CardModals({
                 value={newAmount}
                 onChange={(e) => setNewAmount(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter new amount"
+                placeholder="Enter new current value"
                 min="0"
                 step="0.01"
                 disabled={isUpdating}

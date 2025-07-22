@@ -25,6 +25,7 @@ export enum AccountType {
   PENSION_ACCOUNT = "pension_account",
   REAL_ESTATE = "real_estate",
   INVESTMENT = "investment",
+  EDUCATION_FUND = "education_fund",
 }
 
 export enum TransactionType {
@@ -59,6 +60,18 @@ export interface MoneyLocationData {
   purchase_price?: number;
   attached_files?: string[];
   notes?: string;
+}
+
+export interface FileData {
+  file_id: string;
+  user_id: string;
+  money_location_id: string;
+  original_name: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
+  file_data: Buffer;
+  uploaded_at: Date;
 }
 
 export interface TransactionData {

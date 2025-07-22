@@ -28,6 +28,8 @@ export default function Dashboard() {
     const success = await handleAddMoneyLocation(newLocationData);
     if (success) {
       setIsAddModalOpen(false);
+    } else {
+      throw new Error("Failed to create money location");
     }
   }
 

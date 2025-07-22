@@ -5,6 +5,7 @@ import {
   GoalData,
   TransactionType,
 } from "./database-schemas.js";
+import { deleteFilesByMoneyLocationId } from "./files-utils.js";
 
 // Money Location CRUD operations
 export async function insertMoneyLocation(data: MoneyLocationData) {
@@ -23,12 +24,21 @@ export async function insertMoneyLocation(data: MoneyLocationData) {
   }
 }
 
-export async function deleteMoneyLocation(money_location_id: string) {
+export async function deleteMoneyLocation(
+  money_location_id: string,
+  user_id: string
+) {
   await connect();
   const db = client.db("WealthTracker");
   const collection = db.collection("MoneyLocations");
 
   try {
+    // First, delete all associated files
+    const deletedFilesCount = await deleteFilesByMoneyLocationId(
+      user_id,
+      money_location_id
+    );
+
     const result = await collection.deleteOne({ money_location_id });
     client.close();
     return result;
