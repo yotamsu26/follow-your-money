@@ -43,6 +43,9 @@ export async function deleteMoneyLocation(
     // First, delete all associated files
     await deleteFilesByMoneyLocationId(user_id, money_location_id);
 
+    // delete all goals associated with the money location
+    await deleteGoalsByMoneyLocationId(money_location_id);
+
     const result = await collection.deleteOne({ money_location_id });
     return result;
   } catch (error) {
@@ -144,6 +147,20 @@ export async function getUserGoals(user_id: string) {
     return result;
   } catch (error) {
     console.error("Error getting user goals:", error);
+    throw error;
+  }
+}
+
+export async function deleteGoalsByMoneyLocationId(money_location_id: string) {
+  await connect();
+  const db = client.db(WEALTH_TRACKER_DB);
+  const collection = db.collection(GOALS_COLLECTION);
+
+  try {
+    const result = await collection.deleteMany({ money_location_id });
+    return result;
+  } catch (error) {
+    console.error("Error deleting goals by money location id:", error);
     throw error;
   }
 }
