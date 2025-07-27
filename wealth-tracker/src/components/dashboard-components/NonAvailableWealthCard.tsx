@@ -1,5 +1,5 @@
 import { Currency, getCurrencySymbol } from "../../utils/currency-utils";
-import currencyService from "../../services/currencyService";
+import { currencyService } from "../../services/currencyService";
 
 interface NonAvailableWealthCardProps {
   nonAvailableWealth: number;
@@ -20,7 +20,7 @@ export function NonAvailableWealthCard({
 }: NonAvailableWealthCardProps) {
   return (
     <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-lg">
-      <div className="flex justify-between items-center mb-2">
+      <div className="flex justify-between items-start mb-2">
         <h3 className="text-sm font-medium opacity-90">Non Available Wealth</h3>
         <select
           value={selectedCurrency}

@@ -1,22 +1,29 @@
-import {
-  client,
-  connect,
-  MoneyLocationData,
-  GoalData,
-  TransactionType,
-} from "./database-schemas.js";
+import { client, MoneyLocationData, GoalData } from "./database-schemas.js";
 import { deleteFilesByMoneyLocationId } from "./files-utils.js";
+import {
+  WEALTH_TRACKER_DB,
+  MONEY_LOCATIONS_COLLECTION,
+  GOALS_COLLECTION,
+} from "./db-consts.js";
+
+let isConnected = false;
+
+export async function connect() {
+  if (!isConnected) {
+    await client.connect();
+    isConnected = true;
+    console.log("MongoDB connected");
+  }
+}
 
 // Money Location CRUD operations
 export async function insertMoneyLocation(data: MoneyLocationData) {
   await connect();
-  console.log("connected to db");
-  const db = client.db("WealthTracker");
-  const collection = db.collection("MoneyLocations");
+  const db = client.db(WEALTH_TRACKER_DB);
+  const collection = db.collection(MONEY_LOCATIONS_COLLECTION);
 
   try {
     const result = await collection.insertOne(data);
-    client.close();
     return result;
   } catch (error) {
     console.error("Error inserting money location:", error);
@@ -29,18 +36,17 @@ export async function deleteMoneyLocation(
   user_id: string
 ) {
   await connect();
-  const db = client.db("WealthTracker");
-  const collection = db.collection("MoneyLocations");
+  const db = client.db(WEALTH_TRACKER_DB);
+  const collection = db.collection(MONEY_LOCATIONS_COLLECTION);
 
   try {
     // First, delete all associated files
-    const deletedFilesCount = await deleteFilesByMoneyLocationId(
-      user_id,
-      money_location_id
-    );
+    await deleteFilesByMoneyLocationId(user_id, money_location_id);
+
+    // delete all goals associated with the money location
+    await deleteGoalsByMoneyLocationId(money_location_id);
 
     const result = await collection.deleteOne({ money_location_id });
-    client.close();
     return result;
   } catch (error) {
     console.error("Error deleting money location:", error);
@@ -53,15 +59,14 @@ export async function updateMoneyLocation(
   updateData: Partial<MoneyLocationData>
 ) {
   await connect();
-  const db = client.db("WealthTracker");
-  const collection = db.collection("MoneyLocations");
+  const db = client.db(WEALTH_TRACKER_DB);
+  const collection = db.collection(MONEY_LOCATIONS_COLLECTION);
 
   try {
     const result = await collection.updateOne(
       { money_location_id },
       { $set: updateData }
     );
-    client.close();
     return result;
   } catch (error) {
     console.error("Error updating money location:", error);
@@ -71,12 +76,11 @@ export async function updateMoneyLocation(
 
 export async function getUserMoneyLocations(user_id: string) {
   await connect();
-  const db = client.db("WealthTracker");
-  const collection = db.collection("MoneyLocations");
+  const db = client.db(WEALTH_TRACKER_DB);
+  const collection = db.collection(MONEY_LOCATIONS_COLLECTION);
 
   try {
     const result = await collection.find({ user_id }).toArray();
-    client.close();
     return result;
   } catch (error) {
     console.error("Error getting user money locations:", error);
@@ -84,44 +88,14 @@ export async function getUserMoneyLocations(user_id: string) {
   }
 }
 
-export async function getMonthlyExpenses(
-  user_id: string,
-  year: number,
-  month: number
-) {
-  await connect();
-  const db = client.db("WealthTracker");
-  const collection = db.collection("Transactions");
-
-  try {
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
-
-    const result = await collection
-      .find({
-        user_id,
-        type: TransactionType.EXPENSE,
-        date: { $gte: startDate, $lte: endDate },
-      })
-      .toArray();
-
-    client.close();
-    return result;
-  } catch (error) {
-    console.error("Error getting monthly expenses:", error);
-    throw error;
-  }
-}
-
 // Goals CRUD operations
 export async function insertGoal(data: GoalData) {
   await connect();
-  const db = client.db("WealthTracker");
-  const collection = db.collection("Goals");
+  const db = client.db(WEALTH_TRACKER_DB);
+  const collection = db.collection(GOALS_COLLECTION);
 
   try {
     const result = await collection.insertOne(data);
-    client.close();
     return result;
   } catch (error) {
     console.error("Error inserting goal:", error);
@@ -131,12 +105,11 @@ export async function insertGoal(data: GoalData) {
 
 export async function deleteGoal(goal_id: string) {
   await connect();
-  const db = client.db("WealthTracker");
-  const collection = db.collection("Goals");
+  const db = client.db(WEALTH_TRACKER_DB);
+  const collection = db.collection(GOALS_COLLECTION);
 
   try {
     const result = await collection.deleteOne({ goal_id });
-    client.close();
     return result;
   } catch (error) {
     console.error("Error deleting goal:", error);
@@ -149,15 +122,14 @@ export async function updateGoal(
   updateData: Partial<GoalData>
 ) {
   await connect();
-  const db = client.db("WealthTracker");
-  const collection = db.collection("Goals");
+  const db = client.db(WEALTH_TRACKER_DB);
+  const collection = db.collection(GOALS_COLLECTION);
 
   try {
     const result = await collection.updateOne(
       { goal_id },
       { $set: { ...updateData, updated_at: new Date() } }
     );
-    client.close();
     return result;
   } catch (error) {
     console.error("Error updating goal:", error);
@@ -167,15 +139,42 @@ export async function updateGoal(
 
 export async function getUserGoals(user_id: string) {
   await connect();
-  const db = client.db("WealthTracker");
-  const collection = db.collection("Goals");
+  const db = client.db(WEALTH_TRACKER_DB);
+  const collection = db.collection(GOALS_COLLECTION);
 
   try {
     const result = await collection.find({ user_id }).toArray();
-    client.close();
     return result;
   } catch (error) {
     console.error("Error getting user goals:", error);
     throw error;
   }
 }
+
+export async function deleteGoalsByMoneyLocationId(money_location_id: string) {
+  await connect();
+  const db = client.db(WEALTH_TRACKER_DB);
+  const collection = db.collection(GOALS_COLLECTION);
+
+  try {
+    const result = await collection.deleteMany({ money_location_id });
+    return result;
+  } catch (error) {
+    console.error("Error deleting goals by money location id:", error);
+    throw error;
+  }
+}
+
+async function gracefulShutdown(signal: string) {
+  console.log(`Received ${signal}. Closing MongoDB connection...`);
+  if (isConnected) {
+    await client.close();
+    isConnected = false;
+    console.log("MongoDB connection closed.");
+  }
+  process.exit(0);
+}
+
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGQUIT", () => gracefulShutdown("SIGQUIT"));

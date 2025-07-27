@@ -15,3 +15,9 @@ export interface MoneyLocationData {
   attached_files?: string[];
   notes?: string;
 }
+
+export interface MoneyLocationSync {
+  money_location_id: string;
+  amount: number;
+  currency: string;
+}

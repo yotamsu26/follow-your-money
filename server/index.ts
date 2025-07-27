@@ -10,10 +10,11 @@ import {
 } from "./db/collection-utils.js";
 import express from "express";
 import { validData } from "./utils/validation-utils.js";
-import authRouter from "./auth-api.js";
-import fileRouter from "./routes/file-routes.js";
+import { router as authRouter } from "./auth-api.js";
+import { router as fileRouter } from "./routes/file-routes.js";
 import { authenticateToken } from "./middleware/auth.js";
 import cors from "cors";
+import { getFilesByMoneyLocationId } from "./db/files-utils.js";
 
 const app = express();
 const PORT = 3020;
@@ -40,6 +41,16 @@ app.get("/money-locations/:user_id", authenticateToken, async (req, res) => {
   try {
     const { user_id } = req.params;
     const moneyLocations = await getUserMoneyLocations(user_id);
+
+    // add files to money locations
+    for (const moneyLocation of moneyLocations) {
+      const files = await getFilesByMoneyLocationId(
+        user_id,
+        moneyLocation.money_location_id
+      );
+      moneyLocation.files = files;
+    }
+
     res.json({ success: true, data: moneyLocations });
   } catch (error) {
     console.error("Error fetching money locations:", error);

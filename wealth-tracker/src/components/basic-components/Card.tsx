@@ -9,7 +9,7 @@ import { CardModals } from "./CardModals";
 import { Tooltip } from "./Tooltip";
 import { EditIcon } from "../icons/EditIcon";
 import { DeleteIcon } from "../icons/DeleteIcon";
-import { FilesList } from "./FilesList";
+import { FilesList } from "../file-components/FilesList";
 import { AccountType } from "../../types/account-types";
 
 interface CardProps {
@@ -72,18 +72,10 @@ export function Card({
     }
 
     setIsUpdating(true);
-    try {
-      const success = await onUpdateAmount(
-        moneyLocationData.money_location_id,
-        amount
-      );
-      if (success) {
-        setShowUpdateAmount(false);
-      }
-    } catch (error) {
-      console.error("Error updating money location:", error);
-      alert("Failed to update amount. Please try again.");
-    }
+    await onUpdateAmount(moneyLocationData.money_location_id, amount);
+
+    setShowUpdateAmount(false);
+
     setIsUpdating(false);
   }
 

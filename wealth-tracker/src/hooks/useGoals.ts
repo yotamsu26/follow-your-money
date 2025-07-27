@@ -1,26 +1,17 @@
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/router";
-import { removeItem } from "../storage/local-storage-util";
-import { createGoalApi } from "../services/goalApi";
-import { createGoalSync } from "../services/goalSync";
-import { GoalData } from "../types/types";
+import createGoalApi from "../services/goalApi";
+import { GoalData } from "../types/goal-types";
+import { useApiClient } from "../contexts/ApiContext";
 
 export function useGoals() {
-  const router = useRouter();
   const [goals, setGoals] = useState<GoalData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
-  function handleAuthFailure() {
-    removeItem("userData");
-    router.push("/");
-  }
+  const apiClient = useApiClient();
 
-  // Create API and sync services with memoization
-  const goalApi = useMemo(() => createGoalApi(handleAuthFailure), []);
-  const goalSync = useMemo(() => createGoalSync(handleAuthFailure), []);
+  const goalApi = useMemo(() => createGoalApi(apiClient), [apiClient]);
 
-  // Load goals from API
   async function loadGoals() {
     try {
       setIsLoading(true);
@@ -30,10 +21,10 @@ export function useGoals() {
         setGoals(result.data);
         setError("");
       } else {
-        setError(result.error || "Failed to fetch goals");
+        setError(result.error);
       }
     } catch (error) {
-      setError("Network error. Please try again.");
+      setError("Failed to fetch goals");
     }
 
     setIsLoading(false);
@@ -43,23 +34,21 @@ export function useGoals() {
     loadGoals();
   }, []);
 
-  // Add a new goal
   async function addGoal(
     goalData: Omit<GoalData, "goal_id" | "created_at" | "updated_at">
   ): Promise<boolean> {
     try {
       const result = await goalApi.addGoal(goalData);
-
       if (result.success) {
         await loadGoals();
         setError("");
         return true;
       } else {
-        setError(result.error || "Failed to add goal");
+        setError(result.error);
         return false;
       }
     } catch (error) {
-      setError("Network error. Please try again.");
+      setError("Failed to add goal");
       return false;
     }
   }
@@ -70,51 +59,36 @@ export function useGoals() {
   ): Promise<boolean> {
     try {
       const result = await goalApi.updateGoal(goalId, updateData);
-
       if (result.success) {
         await loadGoals();
         setError("");
         return true;
       } else {
-        setError(result.error || "Failed to update goal");
+        setError(result.error);
         return false;
       }
     } catch (error) {
-      setError("Network error. Please try again.");
+      setError("Failed to update goal");
       return false;
     }
   }
 
-  // Delete a goal
   async function deleteGoal(goalId: string): Promise<boolean> {
     try {
       const result = await goalApi.deleteGoal(goalId);
-
       if (result.success) {
         await loadGoals();
         setError("");
         return true;
       } else {
-        setError(result.error || "Failed to delete goal");
+        setError(result.error);
         return false;
       }
     } catch (error) {
-      setError("Network error. Please try again.");
+      setError("Failed to delete goal");
       return false;
     }
   }
-
-  // Sync goals with money locations
-  const syncGoalsWithMoneyLocations = async (
-    moneyLocations: any[]
-  ): Promise<boolean> => {
-    return await goalSync.syncGoalsWithMoneyLocations(
-      goals,
-      moneyLocations,
-      setGoals,
-      loadGoals
-    );
-  };
 
   return {
     goals,
@@ -124,7 +98,8 @@ export function useGoals() {
     updateGoal,
     deleteGoal,
     refreshGoals: loadGoals,
-    syncGoalsWithMoneyLocations,
     setError,
+    setIsLoading,
+    setGoals,
   };
 }

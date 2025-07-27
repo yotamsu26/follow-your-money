@@ -74,21 +74,6 @@ export interface FileData {
   uploaded_at: Date;
 }
 
-export interface TransactionData {
-  transaction_id: string;
-  user_id: string;
-  money_location_id: string;
-  type: TransactionType;
-  category: ExpenseCategory;
-  amount: number;
-  currency: Currency;
-  description: string;
-  date: Date;
-  receipt_url?: string;
-  tags?: string[];
-  created_at: Date;
-}
-
 export interface GoalData {
   goal_id: string;
   user_id: string;

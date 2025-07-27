@@ -6,3 +6,10 @@ export const CURRENCIES = [
   { value: Currency.GBP, label: "GBP" },
   { value: Currency.ILS, label: "ILS" },
 ];
+
+export const CURRENCY_LABELS = {
+  [Currency.USD]: "USD - US Dollar",
+  [Currency.EUR]: "EUR - Euro",
+  [Currency.GBP]: "GBP - British Pound",
+  [Currency.ILS]: "ILS - Israeli Shekel",
+};

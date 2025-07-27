@@ -3,14 +3,35 @@ import { Button } from "../basic-components/Button";
 import { MoneyLocationForm } from "./MoneyLocationForm";
 import { CURRENCIES } from "../../types/currencies";
 import { ACCOUNT_TYPES } from "../../types/account-types";
-import { wrapFetch } from "../../api/api-calls";
 
 interface AddMoneyLocationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (data: any) => Promise<void>;
+  onAdd: (data: any, files?: FileList) => Promise<boolean>;
   userName: string;
 }
+
+interface MoneyLocationFormData {
+  location_name: string;
+  amount: number;
+  currency: string;
+  account_type: string;
+  property_address: string;
+  purchase_date: string;
+  purchase_price: number;
+  notes: string;
+}
+
+const DEFAULT_FORM_DATA: MoneyLocationFormData = {
+  location_name: "",
+  amount: 0,
+  currency: "USD",
+  account_type: "cash",
+  property_address: "",
+  purchase_date: "",
+  purchase_price: 0,
+  notes: "",
+};
 
 export function AddMoneyLocationModal({
   isOpen,
@@ -18,19 +39,11 @@ export function AddMoneyLocationModal({
   onAdd,
   userName,
 }: AddMoneyLocationModalProps) {
-  const [formData, setFormData] = useState({
-    location_name: "",
-    amount: 0,
-    currency: "USD",
-    account_type: "cash",
-    property_address: "",
-    purchase_date: "",
-    purchase_price: 0,
-    notes: "",
-  });
+  const [formData, setFormData] =
+    useState<MoneyLocationFormData>(DEFAULT_FORM_DATA);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<FileList | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,76 +58,16 @@ export function AddMoneyLocationModal({
         last_checked: new Date().toISOString(),
       };
 
-      await onAdd(moneyLocationData);
+      const success = await onAdd(moneyLocationData, uploadedFiles);
 
-      if (uploadedFiles.length > 0) {
-        try {
-          await uploadFiles(moneyLocationId, uploadedFiles);
-        } catch (error) {
-          console.error("File upload failed:", error);
-          alert(
-            "Money location created, but file upload failed. You can upload files later from the money location card."
-          );
-        }
+      if (success) {
+        setFormData(DEFAULT_FORM_DATA);
+        onClose();
       }
-
-      setFormData({
-        location_name: "",
-        amount: 0,
-        currency: "USD",
-        account_type: "cash",
-        property_address: "",
-        purchase_date: "",
-        purchase_price: 0,
-        notes: "",
-      });
-      setUploadedFiles([]);
-      onClose();
     } catch (error) {
       console.error("Error adding money location:", error);
-      alert("Failed to create money location. Please try again.");
     }
     setIsLoading(false);
-  }
-
-  async function uploadFiles(moneyLocationId: string, files: File[]) {
-    try {
-      const userData = localStorage.getItem("userData");
-      if (!userData) {
-        throw new Error("No user data found");
-      }
-
-      const parsedUserData = JSON.parse(userData);
-      const token = parsedUserData.token;
-
-      const formData = new FormData();
-      files.forEach((file) => {
-        formData.append("files", file);
-      });
-
-      const response = await wrapFetch(
-        `http://localhost:3020/files/upload/${moneyLocationId}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to upload files");
-      }
-
-      const result = await response.json();
-      console.log("Files uploaded successfully:", result);
-      return result;
-    } catch (error) {
-      console.error("Error uploading files:", error);
-      throw error; // Re-throw to handle in the main function
-    }
   }
 
   function handleChange(
@@ -133,7 +86,7 @@ export function AddMoneyLocationModal({
 
   function handleFileChange(files: FileList | null) {
     if (files) {
-      setUploadedFiles(Array.from(files));
+      setUploadedFiles(files);
     }
   }
 
@@ -159,7 +112,7 @@ export function AddMoneyLocationModal({
         </Button>
         <Button type="submit" variant="primary" disabled={isLoading}>
           {isLoading
-            ? uploadedFiles.length > 0
+            ? uploadedFiles && uploadedFiles.length > 0
               ? "Creating location and uploading files..."
               : "Creating location..."
             : "Add Location"}

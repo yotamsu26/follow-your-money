@@ -1,9 +1,10 @@
-import { GoalData } from "../../types/types";
+import { GoalData } from "../../types/goal-types";
 import { MoneyLocationData } from "../../types/money-location-types";
 import { useGoalForm } from "../../hooks/useGoalForm";
 import { GoalFormFields } from "./GoalFormFields";
 import { GoalMoneyLocationConnection } from "./GoalMoneyLocationConnection";
 import { GoalAmountInputs } from "./GoalAmountInputs";
+import { Button } from "../basic-components/Button";
 
 interface GoalFormProps {
   isOpen: boolean;
@@ -43,7 +44,6 @@ export function GoalForm({
       onClose,
     });
 
-  // Get today's date in YYYY-MM-DD format for min attribute
   const today = new Date().toISOString().split("T")[0];
 
   // Validate future date
@@ -76,13 +76,15 @@ export function GoalForm({
           <h2 className="text-xl font-bold text-gray-900">
             {goal ? "Edit Financial Goal" : "Create New Goal"}
           </h2>
-          <button
+          <Button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            variant="outline"
+            size="sm"
+            className="w-8 h-8 rounded-full border-none hover:bg-gray-100 focus:ring-gray-300"
             aria-label="Close"
           >
             <span className="text-xl text-gray-500">×</span>
-          </button>
+          </Button>
         </div>
 
         {/* Error Message */}
@@ -110,25 +112,25 @@ export function GoalForm({
 
           {/* Action Buttons */}
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-            <button
+            <Button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+              variant="outline"
+              size="lg"
               disabled={isSubmitting}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium min-w-[120px]"
+              variant="secondary"
+              size="lg"
               disabled={isSubmitting}
+              isLoading={isSubmitting}
+              className="min-w-[120px]"
             >
-              {isSubmitting
-                ? "Saving..."
-                : goal
-                ? "Update Goal"
-                : "Create Goal"}
-            </button>
+              {goal ? "Update Goal" : "Create Goal"}
+            </Button>
           </div>
         </form>
       </div>

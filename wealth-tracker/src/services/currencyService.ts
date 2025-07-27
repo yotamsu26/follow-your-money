@@ -131,4 +131,3 @@ class CurrencyService {
 }
 
 export const currencyService = CurrencyService.getInstance();
-export default currencyService;

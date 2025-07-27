@@ -13,6 +13,8 @@ export function authenticateToken(
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
+  // Bearer token is a piece of data that acts as a permit to operate on resources, passed in the Authorization header of requests
+
   if (!token) {
     return res.status(401).json({
       success: false,

@@ -86,7 +86,6 @@ router.get("/:money_location_id", authenticateToken, async (req, res) => {
     const files = await getFilesByMoneyLocationId(userId, money_location_id);
     res.json({ success: true, data: files });
   } catch (error) {
-    console.error("Error fetching files:", error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch files",
@@ -198,4 +197,4 @@ router.delete("/:file_id", authenticateToken, async (req, res) => {
   }
 });
 
-export default router;
+export { router };
