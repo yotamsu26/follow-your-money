@@ -1,6 +1,6 @@
 import { MoneyLocationData } from "../types/money-location-types";
 import { Currency } from "../utils/currency-utils";
-import currencyService from "../services/currencyService";
+import { currencyService } from "../services/currencyService";
 import {
   AVAILABLE_ACCOUNT_TYPES,
   NON_AVAILABLE_ACCOUNT_TYPES,

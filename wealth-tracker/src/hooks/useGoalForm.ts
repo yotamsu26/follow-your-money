@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { GoalData } from "../types/types";
+import { GoalData } from "../types/goal-types";
 import { MoneyLocationData } from "../types/money-location-types";
 import { Currency } from "../utils/currency-utils";
 

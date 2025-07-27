@@ -1,4 +1,4 @@
-import { GoalData } from "../../types/types";
+import { GoalData } from "../../types/goal-types";
 import { MoneyLocationData } from "../../types/money-location-types";
 import { useGoalForm } from "../../hooks/useGoalForm";
 import { GoalFormFields } from "./GoalFormFields";

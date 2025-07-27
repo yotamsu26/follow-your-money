@@ -6,7 +6,7 @@ import {
   calculateAvailableWealth,
   calculateNonAvailableWealth,
 } from "../../utils/calculation-utils";
-import currencyService from "../../services/currencyService";
+import { currencyService } from "../../services/currencyService";
 import { AvailableWealthCard } from "./AvailableWealthCard";
 import { NonAvailableWealthCard } from "./NonAvailableWealthCard";
 import { AssetAllocationCard } from "./AssetAllocationCard";

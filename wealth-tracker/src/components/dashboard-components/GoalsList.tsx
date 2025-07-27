@@ -1,4 +1,4 @@
-import { GoalData } from "../../types/types";
+import { GoalData } from "../../types/goal-types";
 import { formatCurrencyAmount } from "../../utils/currency-utils";
 import { Tooltip } from "../basic-components/Tooltip";
 

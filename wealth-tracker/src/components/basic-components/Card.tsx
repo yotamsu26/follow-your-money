@@ -9,7 +9,7 @@ import { CardModals } from "./CardModals";
 import { Tooltip } from "./Tooltip";
 import { EditIcon } from "../icons/EditIcon";
 import { DeleteIcon } from "../icons/DeleteIcon";
-import { FilesList } from "./FilesList";
+import { FilesList } from "../file-components/FilesList";
 import { AccountType } from "../../types/account-types";
 
 interface CardProps {

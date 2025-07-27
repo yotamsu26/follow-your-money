@@ -1,6 +1,6 @@
-import { wrapFetch } from "../api/api-calls";
-import { getItem } from "../storage/local-storage-util";
-import { GoalData } from "../types/types";
+import { GoalData } from "../types/goal-types";
+import { API_ENDPOINTS } from "../utils/routes";
+import { getUserData } from "../api/auth-utils";
 
 export interface GoalApiService {
   loadGoals: () => Promise<{
@@ -18,97 +18,49 @@ export interface GoalApiService {
   deleteGoal: (goalId: string) => Promise<{ success: boolean; error?: string }>;
 }
 
-export function createGoalApi(handleAuthFailure: () => void): GoalApiService {
+function generateGoalId(): string {
+  return `goal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+export default function createGoalApi(apiClient: any): GoalApiService {
   async function loadGoals(): Promise<{
     success: boolean;
     data?: GoalData[];
     error?: string;
   }> {
-    try {
-      const userData = getItem("userData");
-      if (!userData) {
-        handleAuthFailure();
-        return { success: false, error: "No user data" };
-      }
+    const userData = getUserData();
+    if (!userData) {
+      return { success: false, error: "No user data available" };
+    }
 
-      const parsedUserData = JSON.parse(userData);
-      const token = parsedUserData.token;
+    const response = await apiClient.get(
+      API_ENDPOINTS.GOALS.BY_USER(userData.userName)
+    );
 
-      if (!token) {
-        handleAuthFailure();
-        return { success: false, error: "No token" };
-      }
-
-      const response = await wrapFetch(
-        `http://localhost:3020/goals/${parsedUserData.userName}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.status === 401 || response.status === 403) {
-        handleAuthFailure();
-        return { success: false, error: "Authentication failed" };
-      }
-
-      if (data.success) {
-        return { success: true, data: data.data };
-      } else {
-        return {
-          success: false,
-          error: data.message || "Failed to fetch goals",
-        };
-      }
-    } catch (error) {
-      return { success: false, error: "Network error. Please try again." };
+    if (response.success) {
+      return { success: true, data: response.data };
+    } else {
+      return {
+        success: false,
+        error: response.error || "Failed to fetch goals",
+      };
     }
   }
 
   async function addGoal(
     goalData: Omit<GoalData, "goal_id" | "created_at" | "updated_at">
   ): Promise<{ success: boolean; error?: string }> {
-    try {
-      const userData = getItem("userData");
-      if (!userData) {
-        handleAuthFailure();
-        return { success: false, error: "No user data" };
-      }
+    const goalWithId = {
+      ...goalData,
+      goal_id: generateGoalId(),
+    };
 
-      const parsedUserData = JSON.parse(userData);
-      const token = parsedUserData.token;
+    const response = await apiClient.post(API_ENDPOINTS.GOALS.BASE, goalWithId);
 
-      // Generate a unique goal ID
-      const goalId = `goal_${Date.now()}_${Math.random()
-        .toString(36)
-        .substr(2, 9)}`;
-
-      const response = await wrapFetch("http://localhost:3020/goals", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          ...goalData,
-          goal_id: goalId,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.status === 401 || response.status === 403) {
-        handleAuthFailure();
-        return { success: false, error: "Authentication failed" };
-      }
-
-      if (data.success) {
-        return { success: true };
-      } else {
-        return { success: false, error: data.message || "Failed to add goal" };
-      }
-    } catch (error) {
-      return { success: false, error: "Network error. Please try again." };
+    if (response.success) {
+      return { success: true };
+    } else {
+      return { success: false, error: response.error || "Failed to add goal" };
     }
   }
 
@@ -116,83 +68,33 @@ export function createGoalApi(handleAuthFailure: () => void): GoalApiService {
     goalId: string,
     updateData: Partial<GoalData>
   ): Promise<{ success: boolean; error?: string }> {
-    try {
-      const userData = getItem("userData");
-      if (!userData) {
-        handleAuthFailure();
-        return { success: false, error: "No user data" };
-      }
+    const response = await apiClient.put(
+      API_ENDPOINTS.GOALS.BY_ID(goalId),
+      updateData
+    );
 
-      const parsedUserData = JSON.parse(userData);
-      const token = parsedUserData.token;
-
-      const response = await wrapFetch(
-        `http://localhost:3020/goals/${goalId}`,
-        {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${token}` },
-          body: JSON.stringify(updateData),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.status === 401 || response.status === 403) {
-        handleAuthFailure();
-        return { success: false, error: "Authentication failed" };
-      }
-
-      if (data.success) {
-        return { success: true };
-      } else {
-        return {
-          success: false,
-          error: data.message || "Failed to update goal",
-        };
-      }
-    } catch (error) {
-      return { success: false, error: "Network error. Please try again." };
+    if (response.success) {
+      return { success: true };
+    } else {
+      return {
+        success: false,
+        error: response.error || "Failed to update goal",
+      };
     }
   }
 
   async function deleteGoal(
     goalId: string
   ): Promise<{ success: boolean; error?: string }> {
-    try {
-      const userData = getItem("userData");
-      if (!userData) {
-        handleAuthFailure();
-        return { success: false, error: "No user data" };
-      }
+    const response = await apiClient.delete(API_ENDPOINTS.GOALS.BY_ID(goalId));
 
-      const parsedUserData = JSON.parse(userData);
-      const token = parsedUserData.token;
-
-      const response = await wrapFetch(
-        `http://localhost:3020/goals/${goalId}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.status === 401 || response.status === 403) {
-        handleAuthFailure();
-        return { success: false, error: "Authentication failed" };
-      }
-
-      if (data.success) {
-        return { success: true };
-      } else {
-        return {
-          success: false,
-          error: data.message || "Failed to delete goal",
-        };
-      }
-    } catch (error) {
-      return { success: false, error: "Network error. Please try again." };
+    if (response.success) {
+      return { success: true };
+    } else {
+      return {
+        success: false,
+        error: response.error || "Failed to delete goal",
+      };
     }
   }
 

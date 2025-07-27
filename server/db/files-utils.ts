@@ -64,8 +64,7 @@ export async function getFilesByMoneyLocationId(
     client.close();
     return files;
   } catch (error) {
-    console.error("Error fetching files:", error);
-    throw error;
+    return [];
   }
 }
 

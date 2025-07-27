@@ -1,12 +1,13 @@
 import { AppProps } from "next/app";
 import "../styles/index.css";
 import "../styles/global.scss";
+import ApiProvider from "../contexts/ApiContext";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <div>
+    <ApiProvider>
       <Component {...pageProps} />
-    </div>
+    </ApiProvider>
   );
 }
 

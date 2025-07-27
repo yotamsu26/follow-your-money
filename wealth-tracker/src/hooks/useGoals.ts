@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import { removeItem } from "../storage/local-storage-util";
-import { createGoalApi } from "../services/goalApi";
-import { createGoalSync } from "../services/goalSync";
-import { GoalData } from "../types/types";
+import createGoalApi from "../services/goalApi";
+import createGoalSync from "../services/goalSync";
+import { GoalData } from "../types/goal-types";
+import { useApiClient } from "../contexts/ApiContext";
 
 export function useGoals() {
   const router = useRouter();
@@ -11,16 +12,11 @@ export function useGoals() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
-  function handleAuthFailure() {
-    removeItem("userData");
-    router.push("/");
-  }
+  const apiClient = useApiClient();
 
-  // Create API and sync services with memoization
-  const goalApi = useMemo(() => createGoalApi(handleAuthFailure), []);
-  const goalSync = useMemo(() => createGoalSync(handleAuthFailure), []);
+  const goalApi = useMemo(() => createGoalApi(apiClient), [apiClient]);
+  const goalSync = useMemo(() => createGoalSync(apiClient), [apiClient]);
 
-  // Load goals from API
   async function loadGoals() {
     try {
       setIsLoading(true);
@@ -43,7 +39,6 @@ export function useGoals() {
     loadGoals();
   }, []);
 
-  // Add a new goal
   async function addGoal(
     goalData: Omit<GoalData, "goal_id" | "created_at" | "updated_at">
   ): Promise<boolean> {
@@ -85,7 +80,6 @@ export function useGoals() {
     }
   }
 
-  // Delete a goal
   async function deleteGoal(goalId: string): Promise<boolean> {
     try {
       const result = await goalApi.deleteGoal(goalId);
@@ -104,7 +98,6 @@ export function useGoals() {
     }
   }
 
-  // Sync goals with money locations
   const syncGoalsWithMoneyLocations = async (
     moneyLocations: any[]
   ): Promise<boolean> => {

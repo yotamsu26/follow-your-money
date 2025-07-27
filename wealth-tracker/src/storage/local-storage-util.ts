@@ -1,3 +1,7 @@
+export const STORAGE_KEYS = {
+  USER_DATA: "userData",
+};
+
 export function getItem(key: string) {
   return localStorage.getItem(key);
 }

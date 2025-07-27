@@ -3,7 +3,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { Input } from "../components/basic-components/Input";
 import { Button } from "../components/basic-components/Button";
-import { wrapFetch } from "../api/api-calls";
+import { useApiClient } from "../contexts/ApiContext";
 
 enum RegisterError {
   USERNAME_TAKEN = "Username is already taken",
@@ -28,7 +28,7 @@ const registerSchema = z
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
-    path: ["confirmPassword"], // error will show on confirmPassword
+    path: ["confirmPassword"],
   });
 
 export default function RegisterScreen() {
@@ -42,7 +42,8 @@ export default function RegisterScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Handle form submit
+  const apiClient = useApiClient();
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -63,32 +64,28 @@ export default function RegisterScreen() {
     setIsLoading(true);
 
     try {
-      const response = await wrapFetch("http://localhost:3020/auth/register", {
-        method: "POST",
-        body: JSON.stringify({
+      const response = await apiClient.post(
+        "/auth/register",
+        {
           fullName: result.data.fullName,
           userName: result.data.userName,
           email: result.data.email,
           password: result.data.password,
-        }),
-      });
+        },
+        { requiresAuth: false }
+      );
 
-      const data = await response.json();
-
-      if (data.success) {
-        // Registration successful
+      if (response.success) {
         alert("Registration successful! Please login to continue.");
-        // Redirect to login page
         window.location.href = "/";
       } else {
-        // Handle API errors
-        if (data.message === RegisterError.EMAIL_TAKEN) {
+        if (response.error === RegisterError.EMAIL_TAKEN) {
           setErrors({ email: RegisterError.EMAIL_TAKEN });
-        } else if (data.message === RegisterError.USERNAME_TAKEN) {
+        } else if (response.error === RegisterError.USERNAME_TAKEN) {
           setErrors({ userName: RegisterError.USERNAME_TAKEN });
         } else {
           setErrors({
-            submit: data.message || RegisterError.REGISTRATION_FAILED,
+            submit: response.error || RegisterError.REGISTRATION_FAILED,
           });
         }
       }

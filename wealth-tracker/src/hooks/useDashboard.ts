@@ -1,16 +1,41 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { wrapFetch } from "../api/api-calls";
 import { getItem, removeItem } from "../storage/local-storage-util";
 import { MoneyLocationData } from "../types/money-location-types";
+import { useApiClient } from "../contexts/ApiContext";
+import { API_ENDPOINTS } from "../utils/routes";
+import { STORAGE_KEYS } from "../storage/local-storage-util";
+import { UserData } from "../api/auth-utils";
 
-interface UserData {
-  _id: string;
-  fullName: string;
-  userName: string;
-  email: string;
-  createdAt: string;
-  token: string;
+interface TokenPayload {
+  exp?: number;
+  [key: string]: any;
+}
+
+function parseUserData(): UserData | null {
+  try {
+    const userData = getItem(STORAGE_KEYS.USER_DATA);
+    if (!userData) return null;
+    return JSON.parse(userData);
+  } catch (error) {
+    console.error("Error parsing user data:", error);
+    return null;
+  }
+}
+
+function isTokenExpired(token: string): boolean {
+  try {
+    const tokenParts = token.split(".");
+    if (tokenParts.length !== 3) return true;
+
+    const payload: TokenPayload = JSON.parse(atob(tokenParts[1]));
+    const currentTime = Date.now() / 1000;
+
+    return !payload.exp || payload.exp < currentTime;
+  } catch (error) {
+    console.error("Invalid token format:", error);
+    return true;
+  }
 }
 
 export function useDashboard() {
@@ -20,183 +45,105 @@ export function useDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
+  const apiClient = useApiClient();
+
   useEffect(() => {
     loadUserData();
   }, []);
 
   function handleAuthFailure() {
-    removeItem("userData");
+    removeItem(STORAGE_KEYS.USER_DATA);
     router.push("/");
   }
 
-  function loadUserData() {
-    const storedUserData = getItem("userData");
-    if (!storedUserData) {
+  async function loadUserData() {
+    setIsLoading(true);
+    const parsedUserData = parseUserData();
+    if (!parsedUserData) {
       handleAuthFailure();
       return;
     }
 
-    try {
-      const parsedUserData = JSON.parse(storedUserData);
-
-      // Check if token exists and is valid (24 hour session)
-      if (!parsedUserData.token) {
-        handleAuthFailure();
-        return;
-      }
-
-      // Decode JWT to check expiration (basic check)
-      try {
-        const tokenParts = parsedUserData.token.split(".");
-        const payload = JSON.parse(atob(tokenParts[1]));
-        const currentTime = Date.now() / 1000;
-
-        if (payload.exp && payload.exp < currentTime) {
-          // Token expired
-          handleAuthFailure();
-          return;
-        }
-      } catch (tokenError) {
-        console.error("Invalid token format:", tokenError);
-        handleAuthFailure();
-        return;
-      }
-
-      setUserData(parsedUserData);
-      fetchMoneyLocations(parsedUserData.userName);
-    } catch (error) {
-      console.error("Error parsing user data:", error);
+    if (!parsedUserData.token || isTokenExpired(parsedUserData.token)) {
       handleAuthFailure();
+      return;
     }
+
+    setUserData(parsedUserData);
+    await fetchMoneyLocations(parsedUserData.userName);
+    setIsLoading(false);
   }
 
   async function fetchMoneyLocations(userName: string) {
     try {
-      const userData = getItem("userData");
-      if (!userData) {
-        handleAuthFailure();
-        return;
-      }
-
-      const parsedUserData = JSON.parse(userData);
-      const token = parsedUserData.token;
-
-      if (!token) {
-        handleAuthFailure();
-        return;
-      }
-
-      const response = await wrapFetch(
-        `http://localhost:3020/money-locations/${userName}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await apiClient.get(
+        API_ENDPOINTS.MONEY_LOCATIONS.BY_USER(userName)
       );
 
-      const data = await response.json();
-
-      if (response.status === 401 || response.status === 403) {
-        // Token expired or invalid
-        handleAuthFailure();
-        return;
-      }
-
-      if (data.success) {
-        setMoneyLocations(data.data);
+      if (response.success) {
+        setMoneyLocations(response.data || []);
       } else {
-        setError(data.message || "Failed to fetch money locations");
+        setError(response.error || "Failed to fetch money locations");
       }
     } catch (error) {
       console.error("Error fetching money locations:", error);
       setError("Network error. Please try again.");
-    } finally {
-      setIsLoading(false);
     }
   }
 
   function handleLogout() {
-    removeItem("userData");
+    removeItem(STORAGE_KEYS.USER_DATA);
     router.push("/");
   }
 
-  async function handleAddMoneyLocation(newLocationData: any) {
+  async function handleAddMoneyLocation(
+    newLocationData: any,
+    selectedFiles: FileList
+  ): Promise<boolean> {
     try {
-      const userData = getItem("userData");
-      if (!userData) {
-        handleAuthFailure();
-        return;
-      }
+      await apiClient.post(API_ENDPOINTS.MONEY_LOCATIONS.BASE, newLocationData);
 
-      const parsedUserData = JSON.parse(userData);
-      const token = parsedUserData.token;
+      // upload files
+      const formData = new FormData();
+      Array.from(selectedFiles).forEach((file) => {
+        formData.append("files", file);
+      });
 
-      const response = await wrapFetch(
-        "http://localhost:3020/money-locations",
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: JSON.stringify(newLocationData),
-        }
+      await apiClient.post(
+        API_ENDPOINTS.FILES.UPLOAD(newLocationData.money_location_id),
+        formData
       );
 
-      const data = await response.json();
-
-      if (response.status === 401 || response.status === 403) {
-        handleAuthFailure();
-        return;
+      const currentUserData = parseUserData();
+      if (currentUserData) {
+        await fetchMoneyLocations(currentUserData.userName);
       }
-
-      if (data.success) {
-        await fetchMoneyLocations(parsedUserData.userName);
-        return true;
-      } else {
-        setError(data.message || "Failed to add money location");
-        return false;
-      }
+      return true;
     } catch (error) {
-      console.error("Error adding money location:", error);
       setError("Network error. Please try again.");
       return false;
     }
   }
 
-  async function handleDeleteMoneyLocation(moneyLocationId: string) {
+  async function handleDeleteMoneyLocation(
+    moneyLocationId: string
+  ): Promise<boolean> {
     try {
-      const userData = getItem("userData");
-      if (!userData) {
-        handleAuthFailure();
-        return;
-      }
-
-      const parsedUserData = JSON.parse(userData);
-      const token = parsedUserData.token;
-
-      const response = await wrapFetch(
-        `http://localhost:3020/money-locations/${moneyLocationId}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      const response = await apiClient.delete(
+        API_ENDPOINTS.MONEY_LOCATIONS.BY_ID(moneyLocationId)
       );
 
-      const data = await response.json();
-
-      if (response.status === 401 || response.status === 403) {
-        handleAuthFailure();
-        return;
-      }
-
-      if (data.success) {
-        await fetchMoneyLocations(parsedUserData.userName);
+      if (response.success) {
+        const currentUserData = parseUserData();
+        if (currentUserData) {
+          await fetchMoneyLocations(currentUserData.userName);
+        }
         return true;
       } else {
-        setError(data.message || "Failed to delete money location");
+        setError(response.error || "Failed to delete money location");
         return false;
       }
     } catch (error) {
-      console.error("Error deleting money location:", error);
       setError("Network error. Please try again.");
       return false;
     }
@@ -206,51 +153,32 @@ export function useDashboard() {
     moneyLocationId: string,
     newAmount: number,
     onGoalSync?: () => void
-  ) {
+  ): Promise<boolean> {
     try {
-      const userData = getItem("userData");
-      if (!userData) {
-        handleAuthFailure();
-        return;
-      }
-
-      const parsedUserData = JSON.parse(userData);
-      const token = parsedUserData.token;
-
-      const response = await wrapFetch(
-        `http://localhost:3020/money-locations/${moneyLocationId}`,
+      const response = await apiClient.put(
+        API_ENDPOINTS.MONEY_LOCATIONS.BY_ID(moneyLocationId),
         {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            amount: newAmount,
-            last_checked: new Date().toISOString(),
-          }),
+          amount: newAmount,
+          last_checked: new Date().toISOString(),
         }
       );
 
-      const data = await response.json();
-
-      if (response.status === 401 || response.status === 403) {
-        handleAuthFailure();
-        return;
-      }
-
-      if (data.success) {
-        await fetchMoneyLocations(parsedUserData.userName);
+      if (response.success) {
+        const currentUserData = parseUserData();
+        if (currentUserData) {
+          await fetchMoneyLocations(currentUserData.userName);
+        }
 
         if (onGoalSync) {
-          console.log("Money location updated - triggering goal sync");
-          await onGoalSync();
+          onGoalSync();
         }
 
         return true;
       } else {
-        setError(data.message || "Failed to update money location");
+        setError(response.error || "Failed to update money location");
         return false;
       }
     } catch (error) {
-      console.error("Error updating money location:", error);
       setError("Network error. Please try again.");
       return false;
     }

@@ -1,5 +1,5 @@
 import { Currency, getCurrencySymbol } from "../../utils/currency-utils";
-import currencyService from "../../services/currencyService";
+import { currencyService } from "../../services/currencyService";
 
 interface AvailableWealthCardProps {
   availableWealth: number;

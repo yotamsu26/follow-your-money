@@ -24,15 +24,6 @@ export default function Dashboard() {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  async function handleAddLocation(newLocationData: any) {
-    const success = await handleAddMoneyLocation(newLocationData);
-    if (success) {
-      setIsAddModalOpen(false);
-    } else {
-      throw new Error("Failed to create money location");
-    }
-  }
-
   async function handleUpdateLocation(
     moneyLocationId: string,
     newAmount: number
@@ -170,7 +161,7 @@ export default function Dashboard() {
           <AddMoneyLocationModal
             isOpen={isAddModalOpen}
             onClose={() => setIsAddModalOpen(false)}
-            onAdd={handleAddLocation}
+            onAdd={handleAddMoneyLocation}
             userName={userData?.userName || ""}
           />
         </MoneyLocationModalWrapper>
