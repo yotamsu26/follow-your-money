@@ -1,15 +1,9 @@
-import {
-  client,
-  MoneyLocationData,
-  GoalData,
-  TransactionType,
-} from "./database-schemas.js";
+import { client, MoneyLocationData, GoalData } from "./database-schemas.js";
 import { deleteFilesByMoneyLocationId } from "./files-utils.js";
 import {
   WEALTH_TRACKER_DB,
   MONEY_LOCATIONS_COLLECTION,
   GOALS_COLLECTION,
-  TRANSACTIONS_COLLECTION,
 } from "./db-consts.js";
 
 let isConnected = false;
@@ -87,34 +81,6 @@ export async function getUserMoneyLocations(user_id: string) {
     return result;
   } catch (error) {
     console.error("Error getting user money locations:", error);
-    throw error;
-  }
-}
-
-export async function getMonthlyExpenses(
-  user_id: string,
-  year: number,
-  month: number
-) {
-  await connect();
-  const db = client.db(WEALTH_TRACKER_DB);
-  const collection = db.collection(TRANSACTIONS_COLLECTION);
-
-  try {
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
-
-    const result = await collection
-      .find({
-        user_id,
-        type: TransactionType.EXPENSE,
-        date: { $gte: startDate, $lte: endDate },
-      })
-      .toArray();
-
-    return result;
-  } catch (error) {
-    console.error("Error getting monthly expenses:", error);
     throw error;
   }
 }

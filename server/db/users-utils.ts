@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { client } from "./database-schemas.js";
 import { connect } from "./collection-utils.js";
+import { USERS_COLLECTION, WEALTH_TRACKER_DB } from "./db-consts.js";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "your-secret-key-change-in-production";
@@ -9,8 +10,8 @@ const SALT_ROUNDS = 12;
 
 export async function logIn(username: string, password: string) {
   await connect();
-  const db = client.db("WealthTracker");
-  const collection = db.collection("Users");
+  const db = client.db(WEALTH_TRACKER_DB);
+  const collection = db.collection(USERS_COLLECTION);
 
   try {
     // Try to find user by email or username
@@ -55,8 +56,8 @@ export async function signUp(
   password: string
 ) {
   await connect();
-  const db = client.db("WealthTracker");
-  const collection = db.collection("Users");
+  const db = client.db(WEALTH_TRACKER_DB);
+  const collection = db.collection(USERS_COLLECTION);
 
   // Check if user already exists by email
   const existingUserByEmail = await collection.findOne({ email });
