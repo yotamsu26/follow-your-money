@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useGoals } from "../../hooks/useGoals";
 import { GoalData } from "../../types/goal-types";
 import { GoalForm } from "./GoalForm";
 import { GoalsList } from "./GoalsList";
 import { MoneyLocationData } from "../../types/money-location-types";
+import goalSync from "../../services/goalSync";
+import { useApiClient } from "../../contexts/ApiContext";
+import createGoalSync from "../../services/goalSync";
 
 interface GoalsTrackerProps {
   userName: string;
@@ -18,19 +21,32 @@ export function GoalsTracker({ userName, moneyLocations }: GoalsTrackerProps) {
     addGoal,
     updateGoal,
     deleteGoal,
-    syncGoalsWithMoneyLocations,
     setError,
+    setIsLoading,
+    setGoals,
   } = useGoals();
+
+  const apiClient = useApiClient();
+  const goalSync = useMemo(() => createGoalSync(apiClient), [apiClient]);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingGoal, setEditingGoal] = useState<GoalData | null>(null);
 
   // Auto-sync goals with money locations when money locations change
   useEffect(() => {
-    if (!isLoading && goals.length > 0 && moneyLocations.length > 0) {
-      syncGoalsWithMoneyLocations(moneyLocations);
+    async function syncGoals() {
+      if (goals.length > 0 && moneyLocations.length > 0) {
+        setIsLoading(true);
+        await goalSync.syncGoalsWithMoneyLocations(
+          goals,
+          moneyLocations,
+          setGoals
+        );
+        setIsLoading(false);
+      }
     }
-  }, [moneyLocations, isLoading, syncGoalsWithMoneyLocations]);
+    syncGoals();
+  }, [moneyLocations]);
 
   async function handleAddGoal(
     goalData: Omit<GoalData, "goal_id" | "created_at" | "updated_at">

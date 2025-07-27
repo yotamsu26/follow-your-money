@@ -9,22 +9,19 @@ export interface GoalSyncService {
   syncGoalsWithMoneyLocations: (
     goals: GoalData[],
     moneyLocations: any[],
-    setGoals: React.Dispatch<React.SetStateAction<GoalData[]>>,
-    loadGoals: () => Promise<void>
-  ) => Promise<boolean>;
+    setGoals: React.Dispatch<React.SetStateAction<GoalData[]>>
+  ) => Promise<void>;
 }
 
 export default function createGoalSync(apiClient: any): GoalSyncService {
   async function syncGoalsWithMoneyLocations(
     goals: GoalData[],
     moneyLocations: MoneyLocationSync[],
-    setGoals: React.Dispatch<React.SetStateAction<GoalData[]>>,
-    loadGoals: () => Promise<void>
-  ): Promise<boolean> {
+    setGoals: React.Dispatch<React.SetStateAction<GoalData[]>>
+  ): Promise<void> {
     if (!hasValidSyncData(goals, moneyLocations)) {
-      return false;
+      return;
     }
-
     const goalsToSync = goals.filter((goal) => goal.money_location_id);
     let hasUpdates = false;
 
@@ -76,11 +73,9 @@ export default function createGoalSync(apiClient: any): GoalSyncService {
       );
 
       setGoals(updatedGoals);
-      await loadGoals();
-      return true;
     }
 
-    return false;
+    return;
   }
 
   return {

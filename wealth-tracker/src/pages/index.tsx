@@ -25,7 +25,7 @@ export default function LoginScreen() {
 
   useEffect(() => {
     const userData = getItem("userData");
-    console.log(router.pathname);
+
     if (userData) {
       try {
         const parsedUserData = JSON.parse(userData);

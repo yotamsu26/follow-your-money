@@ -1,6 +1,7 @@
 import { GoalData } from "../../types/goal-types";
 import { formatCurrencyAmount } from "../../utils/currency-utils";
 import { Tooltip } from "../basic-components/Tooltip";
+import { Button } from "../basic-components/Button";
 
 interface GoalsListProps {
   goals: GoalData[];
@@ -128,18 +129,22 @@ export function GoalsList({ goals, onEditGoal, onDeleteGoal }: GoalsListProps) {
               {/* Goal Actions */}
               <div className="flex justify-between items-center">
                 <div className="flex space-x-2">
-                  <button
+                  <Button
                     onClick={() => onEditGoal(goal)}
-                    className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
                   >
                     Edit Goal
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => handleDeleteGoal(goal.goal_id)}
-                    className="text-xs bg-red-50 text-red-600 px-2 py-1 rounded hover:bg-red-100"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
                 <div className="text-xs text-gray-500">
                   ${(goal.target_amount - goal.current_amount).toLocaleString()}{" "}

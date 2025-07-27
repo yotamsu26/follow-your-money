@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Button } from "../basic-components/Button";
+import { Input } from "../basic-components/Input";
 
 interface FileEditFormProps {
   fileName: string;
@@ -32,28 +34,33 @@ export function FileEditForm({
 
   return (
     <div className="flex items-center space-x-1">
-      <input
+      <Input
         type="text"
         value={newFileName}
         onChange={(e) => setNewFileName(e.target.value)}
-        className="text-xs border rounded px-1 flex-1"
+        inputSize="sm"
+        className="text-xs flex-1"
         onKeyDown={handleKeyDown}
         autoFocus
       />
-      <button
+      <Button
         onClick={handleSave}
-        className="text-green-600 hover:text-green-800 px-1"
+        variant="outline"
+        size="sm"
+        className="text-green-600 hover:text-green-800 border-green-300 hover:bg-green-50"
         title="Save"
       >
         ✓
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={onCancel}
-        className="text-red-600 hover:text-red-800 px-1"
+        variant="outline"
+        size="sm"
+        className="text-red-600 hover:text-red-800 border-red-300 hover:bg-red-50"
         title="Cancel"
       >
         ✕
-      </button>
+      </Button>
     </div>
   );
 }

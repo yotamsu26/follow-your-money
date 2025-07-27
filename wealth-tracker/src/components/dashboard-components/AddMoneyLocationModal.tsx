@@ -11,22 +11,36 @@ interface AddMoneyLocationModalProps {
   userName: string;
 }
 
+interface MoneyLocationFormData {
+  location_name: string;
+  amount: number;
+  currency: string;
+  account_type: string;
+  property_address: string;
+  purchase_date: string;
+  purchase_price: number;
+  notes: string;
+}
+
+const DEFAULT_FORM_DATA: MoneyLocationFormData = {
+  location_name: "",
+  amount: 0,
+  currency: "USD",
+  account_type: "cash",
+  property_address: "",
+  purchase_date: "",
+  purchase_price: 0,
+  notes: "",
+};
+
 export function AddMoneyLocationModal({
   isOpen,
   onClose,
   onAdd,
   userName,
 }: AddMoneyLocationModalProps) {
-  const [formData, setFormData] = useState({
-    location_name: "",
-    amount: 0,
-    currency: "USD",
-    account_type: "cash",
-    property_address: "",
-    purchase_date: "",
-    purchase_price: 0,
-    notes: "",
-  });
+  const [formData, setFormData] =
+    useState<MoneyLocationFormData>(DEFAULT_FORM_DATA);
 
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<FileList | null>(null);
@@ -47,16 +61,7 @@ export function AddMoneyLocationModal({
       const success = await onAdd(moneyLocationData, uploadedFiles);
 
       if (success) {
-        setFormData({
-          location_name: "",
-          amount: 0,
-          currency: "USD",
-          account_type: "cash",
-          property_address: "",
-          purchase_date: "",
-          purchase_price: 0,
-          notes: "",
-        });
+        setFormData(DEFAULT_FORM_DATA);
         onClose();
       }
     } catch (error) {

@@ -13,6 +13,28 @@ interface UseGoalFormProps {
   onClose: () => void;
 }
 
+interface FormData {
+  name: string;
+  target_amount: string;
+  current_amount: string;
+  deadline: string;
+  category: string;
+  currency: string;
+  description: string;
+  money_location_id: string;
+}
+
+const DEFAULT_FORM_DATA: FormData = {
+  name: "",
+  target_amount: "",
+  current_amount: "",
+  deadline: "",
+  category: "",
+  currency: "USD",
+  description: "",
+  money_location_id: "",
+};
+
 export function useGoalForm({
   goal,
   userName,
@@ -20,16 +42,7 @@ export function useGoalForm({
   onSubmit,
   onClose,
 }: UseGoalFormProps) {
-  const [formData, setFormData] = useState({
-    name: "",
-    target_amount: "",
-    current_amount: "",
-    deadline: "",
-    category: "",
-    currency: "USD",
-    description: "",
-    money_location_id: "",
-  });
+  const [formData, setFormData] = useState<FormData>(DEFAULT_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -46,16 +59,7 @@ export function useGoalForm({
         money_location_id: goal.money_location_id || "",
       });
     } else {
-      setFormData({
-        name: "",
-        target_amount: "",
-        current_amount: "0",
-        deadline: "",
-        category: "Safety",
-        currency: "USD",
-        description: "",
-        money_location_id: "",
-      });
+      setFormData(DEFAULT_FORM_DATA);
     }
     setError("");
   }, [goal]);
@@ -97,15 +101,12 @@ export function useGoalForm({
         money_location_name: selectedMoneyLocation?.location_name || undefined,
       };
 
-      const success = await onSubmit(goalData);
-      if (success) {
-        onClose();
-      }
+      await onSubmit(goalData);
+      onClose();
     } catch (error) {
       setError("An error occurred while saving the goal");
-    } finally {
-      setIsSubmitting(false);
     }
+    setIsSubmitting(false);
   }
 
   function handleChange(

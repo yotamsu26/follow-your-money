@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card } from "../components/basic-components/Card";
+import { Button } from "../components/basic-components/Button";
 import { AddMoneyLocationModal } from "../components/dashboard-components/AddMoneyLocationModal";
 import { WealthSummary } from "../components/dashboard-components/WealthSummary";
 import { GoalsTracker } from "../components/dashboard-components/GoalsTracker";
@@ -20,15 +21,13 @@ export default function Dashboard() {
     setError,
   } = useDashboard();
 
-  const { syncGoalsWithMoneyLocations } = useGoals();
-
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   async function handleUpdateLocation(
     moneyLocationId: string,
     newAmount: number
   ) {
-    const success = await handleUpdateMoneyLocation(
+    const response = await handleUpdateMoneyLocation(
       moneyLocationId,
       newAmount,
       async () => {
@@ -42,10 +41,9 @@ export default function Dashboard() {
               }
             : location
         );
-        await syncGoalsWithMoneyLocations(updatedMoneyLocations);
       }
     );
-    return success;
+    return response;
   }
 
   if (isLoading) {
@@ -72,12 +70,13 @@ export default function Dashboard() {
                 Welcome back, {userData?.fullName}
               </p>
             </div>
-            <button
+            <Button
               onClick={handleLogout}
-              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
+              variant="secondary"
+              className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
             >
               Logout
-            </button>
+            </Button>
           </div>
         </div>
       </header>
@@ -86,12 +85,14 @@ export default function Dashboard() {
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
             {error}
-            <button
+            <Button
               onClick={() => setError("")}
-              className="float-right font-bold text-red-700 hover:text-red-900"
+              variant="outline"
+              size="sm"
+              className="float-right font-bold text-red-700 hover:text-red-900 border-none hover:bg-transparent focus:ring-red-400"
             >
               ×
-            </button>
+            </Button>
           </div>
         )}
 
@@ -115,13 +116,14 @@ export default function Dashboard() {
             <h2 className="text-xl font-semibold text-gray-800">
               Your Money Locations
             </h2>
-            <button
+            <Button
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
+              variant="secondary"
+              className="flex items-center space-x-2"
             >
               <span>📍</span>
               <span>Add Location</span>
-            </button>
+            </Button>
           </div>
           {moneyLocations.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-lg border border-gray-200">
@@ -133,12 +135,13 @@ export default function Dashboard() {
                 Start tracking your wealth by adding your first money location.
                 This could be a bank account, investment, or any asset.
               </p>
-              <button
+              <Button
                 onClick={() => setIsAddModalOpen(true)}
-                className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
+                variant="secondary"
+                size="lg"
               >
                 Add Your First Location
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

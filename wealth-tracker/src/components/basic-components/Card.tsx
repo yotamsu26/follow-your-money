@@ -72,18 +72,10 @@ export function Card({
     }
 
     setIsUpdating(true);
-    try {
-      const success = await onUpdateAmount(
-        moneyLocationData.money_location_id,
-        amount
-      );
-      if (success) {
-        setShowUpdateAmount(false);
-      }
-    } catch (error) {
-      console.error("Error updating money location:", error);
-      alert("Failed to update amount. Please try again.");
-    }
+    await onUpdateAmount(moneyLocationData.money_location_id, amount);
+
+    setShowUpdateAmount(false);
+
     setIsUpdating(false);
   }
 

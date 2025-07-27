@@ -87,7 +87,7 @@ export function useDashboard() {
       }
     } catch (error) {
       console.error("Error fetching money locations:", error);
-      setError("Network error. Please try again.");
+      setError("Failed to fetch money locations");
     }
   }
 
@@ -98,21 +98,23 @@ export function useDashboard() {
 
   async function handleAddMoneyLocation(
     newLocationData: any,
-    selectedFiles: FileList
+    selectedFiles: FileList | null
   ): Promise<boolean> {
     try {
       await apiClient.post(API_ENDPOINTS.MONEY_LOCATIONS.BASE, newLocationData);
 
-      // upload files
-      const formData = new FormData();
-      Array.from(selectedFiles).forEach((file) => {
-        formData.append("files", file);
-      });
+      if (selectedFiles) {
+        // upload files
+        const formData = new FormData();
+        Array.from(selectedFiles).forEach((file) => {
+          formData.append("files", file);
+        });
 
-      await apiClient.post(
-        API_ENDPOINTS.FILES.UPLOAD(newLocationData.money_location_id),
-        formData
-      );
+        await apiClient.post(
+          API_ENDPOINTS.FILES.UPLOAD(newLocationData.money_location_id),
+          formData
+        );
+      }
 
       const currentUserData = parseUserData();
       if (currentUserData) {
@@ -120,7 +122,7 @@ export function useDashboard() {
       }
       return true;
     } catch (error) {
-      setError("Network error. Please try again.");
+      setError("Failed to add money location");
       return false;
     }
   }
@@ -129,22 +131,17 @@ export function useDashboard() {
     moneyLocationId: string
   ): Promise<boolean> {
     try {
-      const response = await apiClient.delete(
+      await apiClient.delete(
         API_ENDPOINTS.MONEY_LOCATIONS.BY_ID(moneyLocationId)
       );
 
-      if (response.success) {
-        const currentUserData = parseUserData();
-        if (currentUserData) {
-          await fetchMoneyLocations(currentUserData.userName);
-        }
-        return true;
-      } else {
-        setError(response.error || "Failed to delete money location");
-        return false;
+      const currentUserData = parseUserData();
+      if (currentUserData) {
+        await fetchMoneyLocations(currentUserData.userName);
       }
+      return true;
     } catch (error) {
-      setError("Network error. Please try again.");
+      setError("Failed to delete money location");
       return false;
     }
   }
@@ -155,7 +152,7 @@ export function useDashboard() {
     onGoalSync?: () => void
   ): Promise<boolean> {
     try {
-      const response = await apiClient.put(
+      await apiClient.put(
         API_ENDPOINTS.MONEY_LOCATIONS.BY_ID(moneyLocationId),
         {
           amount: newAmount,
@@ -163,23 +160,18 @@ export function useDashboard() {
         }
       );
 
-      if (response.success) {
-        const currentUserData = parseUserData();
-        if (currentUserData) {
-          await fetchMoneyLocations(currentUserData.userName);
-        }
-
-        if (onGoalSync) {
-          onGoalSync();
-        }
-
-        return true;
-      } else {
-        setError(response.error || "Failed to update money location");
-        return false;
+      const currentUserData = parseUserData();
+      if (currentUserData) {
+        await fetchMoneyLocations(currentUserData.userName);
       }
+
+      if (onGoalSync) {
+        onGoalSync();
+      }
+
+      return true;
     } catch (error) {
-      setError("Network error. Please try again.");
+      setError("Failed to update money location");
       return false;
     }
   }
