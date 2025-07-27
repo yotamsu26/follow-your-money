@@ -1,7 +1,9 @@
-import { client, FileData, connect } from "./database-schemas.js";
+import { client, FileData } from "./database-schemas.js";
+import { connect } from "./collection-utils.js";
 import { v4 as uuidv4 } from "uuid";
 import { gzip, gunzip } from "zlib";
 import { promisify } from "util";
+import { WEALTH_TRACKER_DB, FILES_COLLECTION } from "./db-consts.js";
 
 export async function uploadFile(
   userId: string,
@@ -15,8 +17,8 @@ export async function uploadFile(
 ): Promise<string> {
   try {
     await connect();
-    const database = client.db("WealthTracker");
-    const filesCollection = database.collection<FileData>("Files");
+    const database = client.db(WEALTH_TRACKER_DB);
+    const filesCollection = database.collection<FileData>(FILES_COLLECTION);
 
     const fileId = uuidv4();
     const fileName = `${fileId}_${file.originalName}`;
@@ -37,7 +39,6 @@ export async function uploadFile(
     };
 
     await filesCollection.insertOne(fileData);
-    client.close();
     return fileId;
   } catch (error) {
     console.error("Error uploading file:", error);
@@ -51,8 +52,8 @@ export async function getFilesByMoneyLocationId(
 ): Promise<Omit<FileData, "file_data">[]> {
   try {
     await connect();
-    const database = client.db("WealthTracker");
-    const filesCollection = database.collection<FileData>("Files");
+    const database = client.db(WEALTH_TRACKER_DB);
+    const filesCollection = database.collection<FileData>(FILES_COLLECTION);
 
     const files = await filesCollection
       .find(
@@ -61,7 +62,6 @@ export async function getFilesByMoneyLocationId(
       )
       .toArray();
 
-    client.close();
     return files;
   } catch (error) {
     return [];
@@ -74,8 +74,8 @@ export async function getFileById(
 ): Promise<FileData | null> {
   try {
     await connect();
-    const database = client.db("WealthTracker");
-    const filesCollection = database.collection<FileData>("Files");
+    const database = client.db(WEALTH_TRACKER_DB);
+    const filesCollection = database.collection<FileData>(FILES_COLLECTION);
 
     const file = await filesCollection.findOne({
       file_id: fileId,
@@ -92,18 +92,14 @@ export async function getFileById(
         const gunzipAsync = promisify(gunzip);
         const decompressedBuffer = await gunzipAsync(file.file_data);
 
-        client.close();
-
         return {
           ...file,
           file_data: decompressedBuffer,
         };
       } catch (error) {
-        client.close();
         return file;
       }
     } else {
-      client.close();
       return null;
     }
   } catch (error) {
@@ -118,15 +114,14 @@ export async function deleteFile(
 ): Promise<boolean> {
   try {
     await connect();
-    const database = client.db("WealthTracker");
-    const filesCollection = database.collection<FileData>("Files");
+    const database = client.db(WEALTH_TRACKER_DB);
+    const filesCollection = database.collection<FileData>(FILES_COLLECTION);
 
     const result = await filesCollection.deleteOne({
       file_id: fileId,
       user_id: userId,
     });
 
-    client.close();
     return result.deletedCount > 0;
   } catch (error) {
     console.error("Error deleting file:", error);
@@ -141,15 +136,14 @@ export async function renameFile(
 ): Promise<boolean> {
   try {
     await connect();
-    const database = client.db("WealthTracker");
-    const filesCollection = database.collection<FileData>("Files");
+    const database = client.db(WEALTH_TRACKER_DB);
+    const filesCollection = database.collection<FileData>(FILES_COLLECTION);
 
     const result = await filesCollection.updateOne(
       { file_id: fileId, user_id: userId },
       { $set: { original_name: newName } }
     );
 
-    client.close();
     return result.modifiedCount > 0;
   } catch (error) {
     console.error("Error renaming file:", error);
@@ -163,15 +157,14 @@ export async function deleteFilesByMoneyLocationId(
 ): Promise<number> {
   try {
     await connect();
-    const database = client.db("WealthTracker");
-    const filesCollection = database.collection<FileData>("Files");
+    const database = client.db(WEALTH_TRACKER_DB);
+    const filesCollection = database.collection<FileData>(FILES_COLLECTION);
 
     const result = await filesCollection.deleteMany({
       user_id: userId,
       money_location_id: moneyLocationId,
     });
 
-    client.close();
     return result.deletedCount;
   } catch (error) {
     console.error("Error deleting files:", error);
