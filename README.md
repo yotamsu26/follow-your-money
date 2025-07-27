@@ -24,7 +24,5 @@ npm run dev
 
 # Next Steps
 
-- move to yarn
-- add option to add files to assets
-- move all svgs to components
+- add tests
 - add notifactions
